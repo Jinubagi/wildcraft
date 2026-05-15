@@ -11,6 +11,7 @@ import WoodCarving from './pages/WoodCarving';
 import BushcraftCooking from './pages/BushcraftCooking';
 import Visual from './pages/Visual';
 import SkillsHome from './pages/SkillsHome';
+import FieldGuide from './pages/FieldGuide';
 export default function App() {
   return (
     <BrowserRouter>
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="woodcarving" element={<WoodCarving />} />
           <Route path="cooking" element={<BushcraftCooking />} />
           <Route path="visual" element={<Visual />} />
+          <Route path="fieldguide" element={<FieldGuide />} />
         </Route>
       </Routes>
     </BrowserRouter>

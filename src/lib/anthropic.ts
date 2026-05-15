@@ -188,6 +188,57 @@ export async function generateSkillContent(
   return result;
 }
 
+// Field guide — identify plant/animal/fish from photo
+export async function identifySpecies(
+  imageBase64: string,
+  mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif',
+  onChunk: (text: string) => void,
+): Promise<string> {
+  const system = `당신은 야생 동식물 전문가이자 부시크래프터입니다.
+사진을 보고 동식물을 식별하고 야외 생존 관점에서 정보를 제공합니다.
+반드시 한국어로, 아래 형식으로 답변하세요:
+
+## 🔍 식별 결과
+**이름**: [한국어명 / 학명]
+**종류**: [식물 / 민물고기 / 바닷물고기 / 곤충 / 포유류 / 조류 / 버섯 / 기타]
+
+## 🍽️ 식용 여부
+[✅ 식용 가능 / ⚠️ 조건부 식용 / ❌ 식용 불가 / ⚠️ 불확실]
+[식용 여부 상세 설명 — 어떻게 먹는지, 주의할 점]
+
+## ⚠️ 위험 / 독성
+[독성 여부, 독성 부위, 유사종 혼동 주의 등]
+
+## 🌿 야외 활용
+[생존 상황에서 활용법 — 식용 외 약용, 도구 등]
+
+## 📍 식별 확신도
+[높음 / 중간 / 낮음] — [확신도가 낮은 경우 반드시 "전문가 확인 필요" 경고]
+
+⚠️ **중요**: 야생에서 직접 채취/섭취 전 반드시 전문가에게 재확인하세요. AI 식별은 100% 정확하지 않습니다.`;
+
+  return streamMessage(
+    {
+      model: MODEL,
+      max_tokens: 1024,
+      system,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: imageBase64 },
+            },
+            { type: 'text', text: '이 사진의 동식물을 식별하고 야외 생존 관점에서 분석해주세요.' },
+          ],
+        },
+      ],
+    },
+    onChunk,
+  );
+}
+
 // Generate checklist
 export async function generateChecklist(
   activity: string,
