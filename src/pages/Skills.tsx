@@ -11,6 +11,9 @@ const CATEGORY_META: Record<string, { emoji: string; label: string; color: strin
   emergency: { emoji: '🆘', label: '긴급상황', color: '#c4441a' },
 };
 
+type LevelFilter = '전체' | '초급' | '중급' | '고급';
+const LEVELS: LevelFilter[] = ['전체', '초급', '중급', '고급'];
+
 export default function Skills() {
   const { category = 'fire' } = useParams();
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ export default function Skills() {
   const [corrections, setCorrections] = useState<Correction[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>('전체');
   const [sheet, setSheet] = useState<{ open: boolean; itemId: string; itemTitle: string }>({
     open: false, itemId: '', itemTitle: '',
   });
@@ -50,6 +54,10 @@ export default function Skills() {
     return corrections.filter((c) => c.itemId === itemId);
   }
 
+  const filteredItems = levelFilter === '전체'
+    ? items
+    : items.filter((item) => item.tags?.includes(levelFilter));
+
   return (
     <div className="page">
       {/* Header */}
@@ -64,7 +72,7 @@ export default function Skills() {
         ← 홈으로
       </button>
 
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 20 }}>
         <h1 style={{ margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span>{meta.emoji}</span>
           <span>{meta.label}</span>
@@ -72,6 +80,34 @@ export default function Skills() {
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
           {items.length}개의 스킬 · 커뮤니티가 보완합니다
         </p>
+      </div>
+
+      {/* Level filter tabs */}
+      <div style={{
+        display: 'flex', gap: 4, marginBottom: 20,
+        background: 'var(--cream)', borderRadius: 10, padding: 4,
+        boxShadow: 'inset 0 1px 3px rgba(44,24,16,0.07)',
+      }}>
+        {LEVELS.map((level) => (
+          <button
+            key={level}
+            onClick={() => setLevelFilter(level)}
+            style={{
+              flex: 1, padding: '8px 4px', borderRadius: 7, border: 'none',
+              cursor: 'pointer', fontSize: '0.88rem',
+              fontFamily: 'var(--font-body)',
+              background: levelFilter === level
+                ? 'linear-gradient(145deg, var(--surface) 0%, #fdfaf7 100%)'
+                : 'transparent',
+              color: levelFilter === level ? 'var(--bark)' : 'var(--text-muted)',
+              fontWeight: levelFilter === level ? 600 : 400,
+              boxShadow: levelFilter === level ? 'var(--shadow-sm)' : 'none',
+              transition: 'all 0.15s',
+            }}
+          >
+            {level}
+          </button>
+        ))}
       </div>
 
       {/* Loading */}
@@ -85,7 +121,7 @@ export default function Skills() {
       {/* Firebase not configured notice */}
       {!loading && items.length === 0 && (
         <div style={{
-          padding: '24px', borderRadius: 10, background: 'var(--cream)',
+          padding: '24px', borderRadius: 12, background: 'var(--cream)',
           border: '1px solid var(--border)', textAlign: 'center',
         }}>
           <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>📭 스킬 데이터 없음</p>
@@ -98,9 +134,19 @@ export default function Skills() {
         </div>
       )}
 
+      {/* No results for this level */}
+      {!loading && items.length > 0 && filteredItems.length === 0 && (
+        <div style={{
+          padding: '24px', borderRadius: 12, background: 'var(--cream)',
+          border: '1px solid var(--border)', textAlign: 'center',
+        }}>
+          <p style={{ fontSize: '1rem' }}>"{levelFilter}" 레벨의 스킬이 없습니다.</p>
+        </div>
+      )}
+
       {/* Skill items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {items.map((item) => {
+        {filteredItems.map((item) => {
           const isExpanded = expanded === item.id;
           const itemCorrections = getCorrectionsFor(item.id);
 
@@ -108,11 +154,12 @@ export default function Skills() {
             <div
               key={item.id}
               style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 10,
+                background: 'linear-gradient(145deg, var(--surface) 0%, #fdfaf7 100%)',
+                border: `1.5px solid ${isExpanded ? 'var(--moss)' : 'var(--border)'}`,
+                borderRadius: 12,
                 overflow: 'hidden',
-                boxShadow: 'var(--shadow-sm)',
+                boxShadow: isExpanded ? 'var(--shadow)' : 'var(--shadow-sm)',
+                transition: 'all 0.2s ease',
               }}
             >
               {/* Item header */}
@@ -121,7 +168,7 @@ export default function Skills() {
                   display: 'flex', alignItems: 'center', gap: '10px',
                   padding: '14px 16px',
                   cursor: 'pointer',
-                  background: isExpanded ? 'var(--cream)' : 'transparent',
+                  background: isExpanded ? 'rgba(74,94,58,0.05)' : 'transparent',
                   transition: 'background 0.15s',
                 }}
                 onClick={() => setExpanded(isExpanded ? null : item.id)}
@@ -188,7 +235,7 @@ export default function Skills() {
                         <div
                           key={c.id}
                           style={{
-                            padding: '8px 12px', borderRadius: 6,
+                            padding: '8px 12px', borderRadius: 8,
                             background: 'var(--cream)',
                             border: '1px solid var(--border-light)',
                             marginBottom: 6, fontSize: '0.88rem',

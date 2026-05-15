@@ -1,16 +1,35 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import NicknameModal, { getNickname } from './NicknameModal';
 
 const NAV_ITEMS = [
   { to: '/', label: '홈', icon: '🏕️', exact: true },
   { to: '/ai', label: 'AI', icon: '🤖', exact: false },
-  { to: '/emergency', label: '긴급', icon: '🆘', exact: false },
+  { to: '/qna', label: 'Q&A', icon: '💬', exact: false },
   { to: '/checklist', label: '준비물', icon: '📋', exact: false },
+  { to: '/emergency', label: '긴급', icon: '🆘', exact: false },
 ];
 
 export default function Layout() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [nickname, setNickname] = useState(() => getNickname());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
+
+  useEffect(() => {
+    const existing = getNickname();
+    if (!existing) {
+      setIsFirstVisit(true);
+      setModalOpen(true);
+    }
+  }, []);
+
+  function handleModalClose(name: string) {
+    setNickname(name);
+    setModalOpen(false);
+    setIsFirstVisit(false);
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
@@ -59,6 +78,24 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+
+        {/* Nickname button */}
+        <button
+          onClick={() => setModalOpen(true)}
+          style={{
+            background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(240,230,211,0.25)',
+            borderRadius: 20, cursor: 'pointer',
+            color: 'rgba(240,230,211,0.85)',
+            fontFamily: 'var(--font-ui)', fontSize: '0.78rem',
+            padding: '4px 10px', whiteSpace: 'nowrap',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.2)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.12)'; }}
+          title="닉네임 변경"
+        >
+          {nickname ? `👤 ${nickname}` : '👤 닉네임 설정'}
+        </button>
 
         {/* Mobile menu button */}
         <button
@@ -123,15 +160,22 @@ export default function Layout() {
             style={({ isActive }) => ({
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
               color: isActive ? 'var(--cream)' : 'rgba(240,230,211,0.5)',
-              textDecoration: 'none', minWidth: '60px',
-              fontFamily: 'var(--font-ui)', fontSize: '0.7rem',
+              textDecoration: 'none', minWidth: '52px',
+              fontFamily: 'var(--font-ui)', fontSize: '0.65rem',
             })}
           >
-            <span style={{ fontSize: '1.4rem' }}>{item.icon}</span>
+            <span style={{ fontSize: '1.3rem' }}>{item.icon}</span>
             <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
+
+      {/* Nickname Modal */}
+      <NicknameModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        isFirstVisit={isFirstVisit}
+      />
 
       <style>{`
         @media (min-width: 641px) {

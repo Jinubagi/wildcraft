@@ -5,6 +5,7 @@ import Skills from './pages/Skills';
 import AIPage from './pages/AIPage';
 import Emergency from './pages/Emergency';
 import Checklist from './pages/Checklist';
+import QnA from './pages/QnA';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="ai" element={<AIPage />} />
           <Route path="emergency" element={<Emergency />} />
           <Route path="checklist" element={<Checklist />} />
+          <Route path="qna" element={<QnA />} />
         </Route>
       </Routes>
     </BrowserRouter>

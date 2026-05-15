@@ -10,6 +10,8 @@ import {
   query,
   orderBy,
   onSnapshot,
+  Timestamp,
+  runTransaction,
 } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
@@ -108,6 +110,85 @@ export async function seedCategory(
   }
 }
 
+// ---- Q&A Types ----
+
+export interface QnaQuestion {
+  id: string;
+  title: string;
+  body: string;
+  authorNickname: string;
+  createdAt: Timestamp;
+  answersCount: number;
+}
+
+export interface QnaAnswer {
+  id: string;
+  body: string;
+  authorNickname: string;
+  createdAt: Timestamp;
+}
+
+// Fetch all questions ordered by newest first
+export async function fetchQuestions(): Promise<QnaQuestion[]> {
+  const ref = collection(db, 'qna_questions');
+  const q = query(ref, orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as QnaQuestion));
+}
+
+// Submit a new question
+export async function submitQuestion(
+  title: string,
+  body: string,
+  nickname: string,
+): Promise<void> {
+  await ensureAuth();
+  const ref = collection(db, 'qna_questions');
+  await addDoc(ref, {
+    title,
+    body,
+    authorNickname: nickname,
+    createdAt: serverTimestamp(),
+    answersCount: 0,
+  });
+}
+
+// Fetch answers for a question
+export async function fetchAnswers(questionId: string): Promise<QnaAnswer[]> {
+  const ref = collection(db, 'qna_questions', questionId, 'answers');
+  const q = query(ref, orderBy('createdAt', 'asc'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as QnaAnswer));
+}
+
+// Submit an answer
+export async function submitAnswer(
+  questionId: string,
+  body: string,
+  nickname: string,
+): Promise<void> {
+  await ensureAuth();
+  const answersRef = collection(db, 'qna_questions', questionId, 'answers');
+  const questionRef = doc(db, 'qna_questions', questionId);
+  await addDoc(answersRef, {
+    body,
+    authorNickname: nickname,
+    createdAt: serverTimestamp(),
+  });
+  // Increment answersCount
+  try {
+    await runTransaction(db, async (transaction) => {
+      const qDoc = await transaction.get(questionRef);
+      if (qDoc.exists()) {
+        const current = (qDoc.data().answersCount as number) ?? 0;
+        transaction.update(questionRef, { answersCount: current + 1 });
+      }
+    });
+  } catch {
+    // Non-critical
+  }
+}
+
 export {
   collection,
   doc,
@@ -117,4 +198,5 @@ export {
   query,
   orderBy,
   serverTimestamp,
+  Timestamp,
 };
