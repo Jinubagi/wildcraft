@@ -231,6 +231,28 @@ export default function Skills() {
                     dangerouslySetInnerHTML={{ __html: markdownToHtml(item.body) }}
                   />
 
+                  {/* YouTube link */}
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(item.title + ' 부시크래프트')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 7,
+                      marginTop: 14, padding: '8px 14px', borderRadius: 8,
+                      background: '#ff0000', color: 'white',
+                      fontSize: '0.85rem', fontWeight: 500,
+                      textDecoration: 'none', transition: 'opacity 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                      <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.5v-7l6.5 3.5-6.5 3.5z"/>
+                    </svg>
+                    유튜브 영상 보기
+                  </a>
+
                   {/* Corrections */}
                   {itemCorrections.length > 0 && (
                     <div style={{ marginTop: 14 }}>
