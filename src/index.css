@@ -24,7 +24,7 @@
   --shadow-lg: 0 4px 16px rgba(44,24,16,0.10), 0 12px 36px rgba(44,24,16,0.14);
 
   /* Typography */
-  --font-display: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+  --font-display: 'Noto Sans KR', -apple-system, sans-serif;
   --font-body: 'Noto Sans KR', -apple-system, 'Segoe UI', sans-serif;
   --font-ui: 'Noto Sans KR', -apple-system, 'Segoe UI', sans-serif;
 
@@ -59,8 +59,8 @@ h1, h2, h3, h4 {
   font-family: var(--font-display);
   color: var(--bark);
   line-height: 1.2;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); }

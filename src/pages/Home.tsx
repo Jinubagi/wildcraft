@@ -386,8 +386,8 @@ export default function Home() {
       {/* Hero */}
       <div style={{ textAlign: 'center', marginBottom: 28, paddingTop: 8 }}>
         <div style={{ fontSize: '3rem', marginBottom: 8 }}>🌿</div>
-        <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(1.6rem, 5vw, 2.4rem)' }}>
-          WildCraft
+        <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', letterSpacing: '0.12em', fontWeight: 700 }}>
+          WILDCRAFT
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', fontStyle: 'italic' }}>
           자연 속에서 살아남는 기술의 수첩
