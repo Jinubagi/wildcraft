@@ -9,6 +9,7 @@ import Checklist from './pages/Checklist';
 import QnA from './pages/QnA';
 import WoodCarving from './pages/WoodCarving';
 import BushcraftCooking from './pages/BushcraftCooking';
+import ActivityLog from './pages/ActivityLog';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="qna" element={<QnA />} />
           <Route path="woodcarving" element={<WoodCarving />} />
           <Route path="cooking" element={<BushcraftCooking />} />
+          <Route path="activity" element={<ActivityLog />} />
         </Route>
       </Routes>
     </BrowserRouter>

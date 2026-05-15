@@ -4,6 +4,7 @@ import {
   fetchAnswers,
   submitQuestion,
   submitAnswer,
+  logActivity,
   type QnaQuestion,
   type QnaAnswer,
 } from '../lib/firebase';
@@ -54,6 +55,7 @@ function AnswerPanel({ questionId, onAnswerAdded }: AnswerPanelProps) {
     setError('');
     try {
       await submitAnswer(questionId, body.trim(), nickname);
+      logActivity(nickname, 'qna_answer', '답변 작성');
       setBody('');
       setShowForm(false);
       await load();
@@ -183,6 +185,7 @@ export default function QnA() {
     setSubmitError('');
     try {
       await submitQuestion(title.trim(), body.trim(), nickname);
+      logActivity(nickname, 'qna_question', `질문: ${title.trim()}`);
       setTitle('');
       setBody('');
       setShowForm(false);

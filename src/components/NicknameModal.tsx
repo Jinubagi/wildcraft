@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { checkNicknameAvailable, registerNickname } from '../lib/firebase';
 
 const STORAGE_KEY = 'wildcraft_nickname';
 
@@ -18,10 +19,13 @@ interface Props {
 
 export default function NicknameModal({ open, onClose, isFirstVisit = false }: Props) {
   const [value, setValue] = useState('');
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (open) {
       setValue(getNickname());
+      setError('');
     }
   }, [open]);
 
@@ -31,10 +35,29 @@ export default function NicknameModal({ open, onClose, isFirstVisit = false }: P
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const trimmed = value.trim();
     if (!trimmed) return;
+
+    const currentNickname = getNickname();
+    // 닉네임이 바뀌지 않으면 그냥 닫기
+    if (trimmed === currentNickname) {
+      onClose(trimmed);
+      return;
+    }
+
+    setChecking(true);
+    setError('');
+    const available = await checkNicknameAvailable(trimmed);
+    if (!available) {
+      setError('이미 사용 중인 닉네임입니다. 다른 닉네임을 입력해주세요.');
+      setChecking(false);
+      return;
+    }
+
     setNickname(trimmed);
+    registerNickname(trimmed); // fire-and-forget
+    setChecking(false);
     onClose(trimmed);
   }
 
@@ -89,25 +112,31 @@ export default function NicknameModal({ open, onClose, isFirstVisit = false }: P
         <input
           className="input"
           value={value}
-          onChange={(e) => setValue(e.target.value.slice(0, 12))}
+          onChange={(e) => { setValue(e.target.value.slice(0, 12)); setError(''); }}
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           placeholder="닉네임 (최대 12자)"
           maxLength={12}
           autoFocus
-          style={{ marginBottom: 12 }}
+          disabled={checking}
+          style={{ marginBottom: 6 }}
         />
 
-        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'right', marginBottom: 16 }}>
-          {value.length}/12
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          {error ? (
+            <span style={{ fontSize: '0.78rem', color: '#a83515' }}>{error}</span>
+          ) : (
+            <span />
+          )}
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{value.length}/12</span>
         </div>
 
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
-          disabled={!value.trim()}
+          disabled={!value.trim() || checking}
           style={{ width: '100%', justifyContent: 'center', fontSize: '1rem' }}
         >
-          확인
+          {checking ? <><span className="spinner" style={{ marginRight: 6 }} />확인 중...</> : '확인'}
         </button>
 
         {!isFirstVisit && (

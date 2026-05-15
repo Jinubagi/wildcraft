@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { getNickname } from '../components/NicknameModal';
+import { logActivity } from '../lib/firebase';
 
 interface Skill {
   title: string;
@@ -99,6 +100,9 @@ export default function Daily() {
     const next = !done;
     setDone(next);
     try { localStorage.setItem(doneKey, next ? '1' : '0'); } catch { /* noop */ }
+    if (next) {
+      logActivity(getNickname(), 'daily_done', `${mainSkill.title} 완료`);
+    }
   }
 
   const diffStyle = DIFFICULTY_COLORS[mainSkill.difficulty] ?? DIFFICULTY_COLORS['초급'];

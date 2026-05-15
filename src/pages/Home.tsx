@@ -529,6 +529,21 @@ export default function Home() {
         )}
       </div>
 
+      {/* Activity log link */}
+      <div style={{ textAlign: 'center', marginTop: 8, paddingBottom: 8 }}>
+        <button
+          onClick={() => navigate('/activity')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-muted)', fontSize: '0.8rem',
+            fontFamily: 'var(--font-body)', textDecoration: 'underline',
+            padding: '4px 8px',
+          }}
+        >
+          📋 용사들의 활동 로그 보기
+        </button>
+      </div>
+
     </div>
   );
 }

@@ -3,12 +3,14 @@ import {
   getFirestore,
   collection,
   doc,
+  getDoc,
   getDocs,
   addDoc,
   setDoc,
   serverTimestamp,
   query,
   orderBy,
+  limit,
   onSnapshot,
   Timestamp,
   runTransaction,
@@ -251,6 +253,78 @@ export async function submitAnswer(
     }));
   } catch {
     // Non-critical
+  }
+}
+
+// ---- Nickname registry ----
+
+// Check if a nickname is already taken (returns true if available)
+export async function checkNicknameAvailable(nickname: string): Promise<boolean> {
+  if (!isFirebaseConfigured) return true; // offline: allow anything
+  try {
+    const ref = doc(db, 'nicknames', nickname.trim().toLowerCase());
+    const snap = await withTimeout(getDoc(ref), 5000);
+    return !snap.exists();
+  } catch {
+    return true; // on timeout/error, don't block the user
+  }
+}
+
+// Register a nickname in Firestore
+export async function registerNickname(nickname: string): Promise<void> {
+  if (!isFirebaseConfigured) return;
+  try {
+    const ref = doc(db, 'nicknames', nickname.trim().toLowerCase());
+    await withTimeout(setDoc(ref, {
+      nickname,
+      registeredAt: serverTimestamp(),
+    }));
+  } catch {
+    // Non-critical — local nickname still saved
+  }
+}
+
+// ---- Activity log ----
+
+export interface ActivityLog {
+  id: string;
+  nickname: string;
+  action: 'skill_edit' | 'skill_add' | 'daily_done' | 'qna_question' | 'qna_answer';
+  detail: string;        // human-readable: "보울라인 매듭 수정"
+  category?: string;
+  timestamp: Timestamp | null;
+}
+
+export async function logActivity(
+  nickname: string,
+  action: ActivityLog['action'],
+  detail: string,
+  category?: string,
+): Promise<void> {
+  if (!isFirebaseConfigured || !nickname) return;
+  try {
+    const ref = collection(db, 'activity_logs');
+    await withTimeout(addDoc(ref, {
+      nickname,
+      action,
+      detail,
+      category: category ?? null,
+      timestamp: serverTimestamp(),
+    }), 5000);
+  } catch {
+    // Non-critical
+  }
+}
+
+export async function fetchActivityLogs(count = 50): Promise<ActivityLog[]> {
+  if (!isFirebaseConfigured) return [];
+  try {
+    const ref = collection(db, 'activity_logs');
+    const q = query(ref, orderBy('timestamp', 'desc'), limit(count));
+    const snap = await withTimeout(getDocs(q), 8000);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ActivityLog));
+  } catch {
+    return [];
   }
 }
 

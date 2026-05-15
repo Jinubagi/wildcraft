@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { updateSkillItem, addSkillItem } from '../lib/firebase';
+import { updateSkillItem, addSkillItem, logActivity } from '../lib/firebase';
+import { getNickname } from './NicknameModal';
 import { generateSkillContent } from '../lib/anthropic';
 
 interface Props {
@@ -64,6 +65,7 @@ export default function BottomSheet({
       const nonLevelTags = itemTags.filter((t) => !LEVELS.includes(t as typeof LEVELS[number]));
       const newTags = selectedLevel ? [selectedLevel, ...nonLevelTags] : nonLevelTags;
       await updateSkillItem(category, itemId, { body: correctionText, tags: newTags });
+      logActivity(getNickname(), 'skill_edit', `${itemTitle} 수정`, category);
       setSuccess('✅ 수정이 저장됐습니다!');
       onItemAdded?.();
     } catch {
@@ -92,6 +94,7 @@ export default function BottomSheet({
         body,
         addedBy: 'community',
       });
+      logActivity(getNickname(), 'skill_add', `${additionTopic} 추가`, category);
       onItemAdded?.();
 
       setSuccess('✅ AI가 새 스킬을 생성했습니다!');
