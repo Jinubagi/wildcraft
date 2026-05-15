@@ -93,21 +93,12 @@ function saveGlossary(g: Record<string, string>) {
   try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(g)); } catch { /* noop */ }
 }
 
-// ---- Daily index helper ----
-function getDailyIndex(list: string[], seed: string): number {
-  let hash = 0;
-  for (const ch of seed) hash = ((hash << 5) - hash) + ch.charCodeAt(0);
-  return Math.abs(hash) % list.length;
-}
-
 // ---- Rules Section ----
 function RulesSection() {
   const [open, setOpen] = useState(false);
   const [rules, setRules] = useState<string[]>(loadRules);
   const [input, setInput] = useState('');
-
-  const today = new Date().toDateString();
-  const dailyIdx = getDailyIndex(rules, today);
+  const [dailyIdx] = useState(() => Math.floor(Math.random() * loadRules().length));
 
   function addRule() {
     const trimmed = input.trim();
@@ -215,9 +206,11 @@ function GlossarySection() {
   const [suggestion, setSuggestion] = useState('');
   const [submitted, setSubmitted] = useState<string | null>(null);
 
-  const today = new Date().toDateString();
   const termKeys = Object.keys(glossary);
-  const dailyKey = termKeys[getDailyIndex(termKeys, today + '1')] ?? termKeys[0];
+  const [dailyKey] = useState(() => {
+    const keys = Object.keys(loadGlossary());
+    return keys[Math.floor(Math.random() * keys.length)] ?? keys[0];
+  });
 
   function addTerm() {
     const term = termInput.trim();
