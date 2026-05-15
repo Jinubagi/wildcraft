@@ -16,7 +16,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **팁**: 스트라이커 각도는 45° 유지, 손목 스냅으로 빠르게 내리칩니다.`,
       addedBy: 'official' as const,
-      tags: ['전통기법', '불씨', '부싯돌'],
+      tags: ['초급', '전통기법', '불씨', '부싯돌'],
     },
     {
       title: '활비비개로 마찰 발화하기',
@@ -33,7 +33,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **목재 조합**: 삼나무보드 + 삼나무스핀들이 입문자에게 적합합니다.`,
       addedBy: 'official' as const,
-      tags: ['원시기법', '마찰발화', '활비비개'],
+      tags: ['고급', '원시기법', '마찰발화', '활비비개'],
     },
     {
       title: '야외 불 관리와 안전 소화법',
@@ -56,7 +56,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 ⚠️ 산불 위험 지역에서는 불피우기 금지.`,
       addedBy: 'official' as const,
-      tags: ['안전', '불관리', '소화'],
+      tags: ['초급', '안전', '불관리', '소화'],
     },
     {
       title: '불의 삼각형 이해',
@@ -74,7 +74,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **팁**: 항상 틴더 → 킨들링 → 연료 순서로 준비하고, 불을 붙이기 전에 모든 재료가 준비되어 있어야 합니다.`,
       addedBy: 'official' as const,
-      tags: ['기초이론', '불의삼각형', '연료'],
+      tags: ['초급', '기초이론', '불의삼각형', '연료'],
     },
     {
       title: '촛불 없이 랜턴 만들기',
@@ -94,7 +94,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **주의**: 항상 통제된 환경에서 사용하고 주변 가연물 제거 필수.`,
       addedBy: 'official' as const,
-      tags: ['랜턴', '수지', '야간조명'],
+      tags: ['중급', '랜턴', '수지', '야간조명'],
     },
     {
       title: '화톳불 안전 수칙과 소화법',
@@ -113,7 +113,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **연기도 열기도 없어야 진짜 꺼진 것.** 절대로 그냥 자리를 뜨지 마세요.`,
       addedBy: 'official' as const,
-      tags: ['안전', '소화', 'LNT'],
+      tags: ['초급', '안전', '소화', 'LNT'],
     },
   ],
   knots: [
@@ -132,7 +132,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **특징**: 쉽게 풀 수 있음, 고정 루프 크기, 슬립 없음`,
       addedBy: 'official' as const,
-      tags: ['기본매듭', '루프', '구조'],
+      tags: ['초급', '기본매듭', '루프', '구조'],
     },
     {
       title: '클로브 히치 (Clove Hitch)',
@@ -149,7 +149,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 ⚠️ 하중이 측면으로 가면 느슨해질 수 있으니 중요 구조물에는 보조 매듭 추가.`,
       addedBy: 'official' as const,
-      tags: ['기본매듭', '고정', '타프'],
+      tags: ['초급', '기본매듭', '고정', '타프'],
     },
     {
       title: '프루직 매듭 (Prusik Knot)',
@@ -170,7 +170,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **비율 권장**: 프루직 코드는 메인 로프의 60-80% 두께가 적합합니다.`,
       addedBy: 'official' as const,
-      tags: ['클라이밍', '마찰매듭', '생존'],
+      tags: ['고급', '클라이밍', '마찰매듭', '생존'],
     },
     {
       title: '쉬트 밴드 (Sheet Bend)',
@@ -189,7 +189,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **더블 쉬트 밴드**: 가는 줄을 한 번 더 감으면 더 강력해집니다.`,
       addedBy: 'official' as const,
-      tags: ['연결매듭', '로프연장', '중급'],
+      tags: ['중급', '연결매듭', '로프연장'],
     },
     {
       title: '데드아이 히치 (Deadman Anchor)',
@@ -208,7 +208,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 겨울 캠핑이나 해변 캠핑에서 필수적인 기술입니다.`,
       addedBy: 'official' as const,
-      tags: ['앵커', '눈캠핑', '타프고정'],
+      tags: ['중급', '앵커', '눈캠핑', '타프고정'],
     },
     {
       title: '래핑 히치와 장대 연결',
@@ -231,7 +231,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 래핑은 처음엔 어렵지만 익히면 도구 없이 튼튼한 구조물을 만들 수 있습니다.`,
       addedBy: 'official' as const,
-      tags: ['래핑', '구조물', '장대연결'],
+      tags: ['고급', '래핑', '구조물', '장대연결'],
     },
   ],
   shelter: [
@@ -249,7 +249,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **각도 팁**: 비바람이 오는 방향 쪽은 낮게, 반대쪽은 높게 설치합니다.`,
       addedBy: 'official' as const,
-      tags: ['타프', 'A프레임', '기본설치'],
+      tags: ['초급', '타프', 'A프레임', '기본설치'],
     },
     {
       title: '자연 쉘터: 린투(Lean-to) 만들기',
@@ -267,7 +267,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 4. 나뭇잎, 풀, 이끼를 지붕처럼 두껍게 (30cm 이상) 덮습니다
 5. 안쪽 바닥에 마른 잎을 두껍게 깔아 단열합니다`,
       addedBy: 'official' as const,
-      tags: ['자연쉘터', '생존', '린투'],
+      tags: ['중급', '자연쉘터', '생존', '린투'],
     },
     {
       title: '비박(Bivouac) 위치 선정과 준비',
@@ -288,7 +288,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **체온 관리**: 땅에서 올라오는 냉기가 위에서 오는 것보다 위험합니다. 바닥 단열이 최우선.`,
       addedBy: 'official' as const,
-      tags: ['비박', '위치선정', '체온관리'],
+      tags: ['초급', '비박', '위치선정', '체온관리'],
     },
     {
       title: '퀸지 (Quinzhee) 눈 쉘터',
@@ -307,7 +307,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 - 내부에서 촛불로 온도 확인
 - 입구는 몸이 겨우 통과할 크기로 (열 유지)`,
       addedBy: 'official' as const,
-      tags: ['눈쉘터', '겨울생존', '보온'],
+      tags: ['고급', '눈쉘터', '겨울생존', '보온'],
     },
     {
       title: '해먹 설치와 수면 시스템',
@@ -328,7 +328,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **팁**: 대각선으로 약간 누우면 훨씬 편안한 수면 자세가 됩니다.`,
       addedBy: 'official' as const,
-      tags: ['해먹', '수면', '타프'],
+      tags: ['중급', '해먹', '수면', '타프'],
     },
     {
       title: '쉘터 위치 선정 5원칙',
@@ -348,7 +348,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 - 평평하고 돌이 없는 바닥
 - 탈출 경로 두 개 이상 확보`,
       addedBy: 'official' as const,
-      tags: ['위치선정', '야영지', '안전'],
+      tags: ['초급', '위치선정', '야영지', '안전'],
     },
   ],
   water: [
@@ -369,7 +369,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 3. 위에서 물을 부으면 아래로 필터됩니다
 4. 자연 필터는 부유물 제거용, 세균 제거는 반드시 끓여야 합니다`,
       addedBy: 'official' as const,
-      tags: ['정수', '식수', '필터'],
+      tags: ['초급', '정수', '식수', '필터'],
     },
     {
       title: '이슬과 빗물 수집 기술',
@@ -390,7 +390,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 - 봄 자작나무, 단풍나무에서 수액 채취 가능
 - 나무에 홈을 파거나 가지 끝 비닐백 덮어 수집`,
       addedBy: 'official' as const,
-      tags: ['이슬', '빗물', '수분수집'],
+      tags: ['중급', '이슬', '빗물', '수분수집'],
     },
     {
       title: '안전한 식수원 찾기',
@@ -414,7 +414,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 2. (주의) 계곡 중류 → 필터 + 끓이기
 3. (위험) 고인 물, 연못 → 필터 + 정수 알약 + 끓이기`,
       addedBy: 'official' as const,
-      tags: ['식수원', '안전', '판별법'],
+      tags: ['초급', '식수원', '안전', '판별법'],
     },
     {
       title: '야생 식물로 물 찾기',
@@ -438,7 +438,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 - 알코올
 - 흰색 수액이 나오는 식물`,
       addedBy: 'official' as const,
-      tags: ['식수탐색', '지형', '생존'],
+      tags: ['중급', '식수탐색', '지형', '생존'],
     },
     {
       title: '솔라 스틸 (태양열 증류)',
@@ -459,7 +459,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 - 소변을 넣어도 증류되어 안전한 물이 됨
 - 밤에도 온도차로 작동함`,
       addedBy: 'official' as const,
-      tags: ['솔라스틸', '증류', '비상식수'],
+      tags: ['고급', '솔라스틸', '증류', '비상식수'],
     },
     {
       title: '물 안전 판별법',
@@ -486,7 +486,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **기억**: 맑아 보여도 반드시 정수하세요. 지아르디아는 눈에 보이지 않습니다.`,
       addedBy: 'official' as const,
-      tags: ['물판별', '정수', '안전'],
+      tags: ['초급', '물판별', '정수', '안전'],
     },
   ],
   emergency: [
@@ -517,7 +517,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 ⚠️ 119 신고 가능하면 즉시 신고. 등산 앱 위치 공유 기능 활용.`,
       addedBy: 'official' as const,
-      tags: ['조난', 'STOP원칙', '기본대처'],
+      tags: ['초급', '조난', 'STOP원칙', '기본대처'],
     },
     {
       title: '저체온증 인식과 응급처치',
@@ -543,7 +543,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 ⚠️ 다리나 팔을 먼저 따뜻하게 하면 차가운 혈액이 심장으로 몰려 위험합니다.`,
       addedBy: 'official' as const,
-      tags: ['저체온증', '응급처치', '체온'],
+      tags: ['중급', '저체온증', '응급처치', '체온'],
     },
     {
       title: '야생 동물 조우 대처법',
@@ -569,7 +569,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **일반 원칙**: 소음을 내며 걸으면 대부분의 동물이 먼저 피합니다.`,
       addedBy: 'official' as const,
-      tags: ['야생동물', '멧돼지', '뱀', '말벌'],
+      tags: ['초급', '야생동물', '멧돼지', '뱀', '말벌'],
     },
     {
       title: '조난 신호 보내기',
@@ -595,7 +595,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 **핵심**: 움직이지 말고 한 자리에 있으면서 신호를 보내세요. 구조대는 마지막 목격 위치를 기준으로 찾습니다.`,
       addedBy: 'official' as const,
-      tags: ['조난신호', 'SOS', '구조요청'],
+      tags: ['초급', '조난신호', 'SOS', '구조요청'],
     },
     {
       title: '골든 타임 응급처치',
@@ -624,7 +624,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 
 모든 응급 처치 후 반드시 하산하여 전문 치료를 받으세요.`,
       addedBy: 'official' as const,
-      tags: ['응급처치', '골절', '화상', '골든타임'],
+      tags: ['중급', '응급처치', '골절', '화상', '골든타임'],
     },
     {
       title: '비박 (Bivouac) 긴급 야영',
@@ -651,7 +651,7 @@ export const SEED_DATA: Record<string, { title: string; body: string; addedBy: '
 - 밤새 호루라기 3번씩 신호
 - 아침 되면 즉시 하산 시도`,
       addedBy: 'official' as const,
-      tags: ['비박', '긴급야영', '체온유지'],
+      tags: ['중급', '비박', '긴급야영', '체온유지'],
     },
   ],
 };

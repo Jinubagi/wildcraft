@@ -117,77 +117,66 @@ export default function Layout() {
         </button>
       </header>
 
-      {/* Mobile dropdown menu */}
+      {/* Side drawer overlay */}
       {menuOpen && (
-        <div style={{
-          position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, zIndex: 99,
-          background: 'var(--bark-light)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        }}>
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.exact}
-              onClick={() => setMenuOpen(false)}
-              style={({ isActive }) => ({
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '14px 20px',
-                color: isActive ? 'var(--cream)' : 'rgba(240,230,211,0.8)',
-                background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                fontFamily: 'var(--font-body)', fontSize: '1.05rem',
-                textDecoration: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-              })}
-            >
-              {item.icon} {item.label}
-            </NavLink>
-          ))}
-        </div>
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 98,
+            background: 'rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(2px)',
+          }}
+        />
       )}
 
-      {/* Main content */}
-      <main style={{ flex: 1 }}>
-        <Outlet />
-      </main>
-
-      {/* Bottom nav (mobile) */}
+      {/* Side drawer */}
       <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-        background: 'var(--bark)', borderTop: '1px solid rgba(255,255,255,0.1)',
-        display: 'flex', justifyContent: 'space-around',
-        padding: '8px 0 max(8px, env(safe-area-inset-bottom))',
-      }} className="bottom-nav">
+        position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 99,
+        width: 240,
+        background: 'var(--bark)',
+        boxShadow: menuOpen ? '4px 0 24px rgba(0,0,0,0.4)' : 'none',
+        display: 'flex', flexDirection: 'column',
+        paddingTop: 'var(--nav-h)',
+        transform: menuOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
+        overflowY: 'auto',
+      }} className="side-drawer">
+        <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <p style={{
+            color: 'rgba(240,230,211,0.5)', fontSize: '0.7rem',
+            textTransform: 'uppercase', letterSpacing: '1px', margin: 0,
+          }}>메뉴</p>
+        </div>
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.exact}
+            onClick={() => setMenuOpen(false)}
             style={({ isActive }) => ({
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '13px 20px',
               color: item.to === '/emergency'
-                ? '#ff4d2e'
-                : (isActive ? 'var(--cream)' : 'rgba(240,230,211,0.5)'),
-              textDecoration: 'none', minWidth: '52px',
-              fontFamily: 'var(--font-ui)', fontSize: '0.65rem',
+                ? '#ff6b4a'
+                : (isActive ? 'var(--cream)' : 'rgba(240,230,211,0.75)'),
+              background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+              fontFamily: 'var(--font-body)', fontSize: '1rem',
               fontWeight: item.to === '/emergency' ? 700 : 400,
+              textDecoration: 'none',
+              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              transition: 'background 0.1s',
             })}
           >
-            {item.to === '/emergency' ? (
-              <span style={{
-                fontSize: '1.3rem',
-                background: 'rgba(196,68,26,0.25)',
-                borderRadius: '50%',
-                width: 32, height: 32,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{item.icon}</span>
-            ) : (
-              <span style={{ fontSize: '1.3rem' }}>{item.icon}</span>
-            )}
-            <span>{item.label}</span>
+            <span style={{ fontSize: '1.2rem', width: 24, textAlign: 'center' }}>{item.icon}</span>
+            {item.label}
           </NavLink>
         ))}
       </nav>
+
+      {/* Main content */}
+      <main style={{ flex: 1 }}>
+        <Outlet />
+      </main>
 
       {/* Nickname Modal */}
       <NicknameModal
@@ -199,7 +188,7 @@ export default function Layout() {
       <style>{`
         @media (min-width: 641px) {
           .mobile-menu-btn { display: none !important; }
-          .bottom-nav { display: none !important; }
+          .side-drawer { display: none !important; }
         }
         @media (max-width: 640px) {
           .desktop-nav { display: none !important; }

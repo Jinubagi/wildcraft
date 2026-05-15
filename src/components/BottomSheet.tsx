@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { submitCorrection, addSkillItem } from '../lib/firebase';
+import { updateSkillItem, addSkillItem } from '../lib/firebase';
 import { generateSkillContent } from '../lib/anthropic';
 
 interface Props {
@@ -8,6 +8,8 @@ interface Props {
   category: string;
   itemId: string;
   itemTitle: string;
+  itemBody?: string;
+  itemTags?: string[];
   onItemAdded?: () => void;
 }
 
@@ -17,27 +19,35 @@ export default function BottomSheet({
   category,
   itemId,
   itemTitle,
+  itemBody = '',
+  itemTags = [],
   onItemAdded,
 }: Props) {
+  const LEVELS = ['초급', '중급', '고급'] as const;
+  type Level = typeof LEVELS[number];
+
   const [tab, setTab] = useState<'correction' | 'addition'>('correction');
   const [correctionText, setCorrectionText] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState<Level | ''>('');
   const [additionTopic, setAdditionTopic] = useState('');
   const [loading, setLoading] = useState(false);
   const [generatedPreview, setGeneratedPreview] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  // Reset on open
+  // Reset on open — pre-fill correction with existing body + level
   useEffect(() => {
     if (open) {
-      setCorrectionText('');
+      setCorrectionText(itemBody);
+      const existingLevel = LEVELS.find((l) => itemTags.includes(l)) ?? '';
+      setSelectedLevel(existingLevel);
       setAdditionTopic('');
       setGeneratedPreview('');
       setSuccess('');
       setError('');
-      setTab('correction');
+      setTab(itemId === '__new__' ? 'addition' : 'correction');
     }
-  }, [open]);
+  }, [open, itemBody, itemTags, itemId]);
 
   // Prevent body scroll
   useEffect(() => {
@@ -50,11 +60,14 @@ export default function BottomSheet({
     setLoading(true);
     setError('');
     try {
-      await submitCorrection(category, itemId, correctionText, 'correction');
-      setSuccess('✅ 수정 제안이 접수됐습니다. 감사합니다!');
-      setCorrectionText('');
+      // Build new tags: replace level tag, keep non-level tags
+      const nonLevelTags = itemTags.filter((t) => !LEVELS.includes(t as typeof LEVELS[number]));
+      const newTags = selectedLevel ? [selectedLevel, ...nonLevelTags] : nonLevelTags;
+      await updateSkillItem(category, itemId, { body: correctionText, tags: newTags });
+      setSuccess('✅ 수정이 저장됐습니다!');
+      onItemAdded?.();
     } catch {
-      setError('⚠️ 저장 중 오류가 발생했습니다. Firebase 설정을 확인하세요.');
+      setError('⚠️ 저장 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -163,15 +176,39 @@ export default function BottomSheet({
         {tab === 'correction' ? (
           <div>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: 10 }}>
-              잘못된 정보나 개선이 필요한 내용을 알려주세요.
+              내용을 직접 수정하고 등급을 설정하세요.
             </p>
+
+            {/* Level selector */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {LEVELS.map((lv) => (
+                <button
+                  key={lv}
+                  onClick={() => setSelectedLevel(selectedLevel === lv ? '' : lv)}
+                  disabled={loading}
+                  style={{
+                    flex: 1, padding: '6px', borderRadius: 6, border: 'none',
+                    cursor: 'pointer', fontSize: '0.85rem',
+                    fontFamily: 'var(--font-body)',
+                    background: selectedLevel === lv ? 'var(--moss)' : 'var(--cream)',
+                    color: selectedLevel === lv ? 'white' : 'var(--text-muted)',
+                    fontWeight: selectedLevel === lv ? 600 : 400,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {lv}
+                </button>
+              ))}
+            </div>
+
             <textarea
               className="input"
               value={correctionText}
               onChange={(e) => setCorrectionText(e.target.value)}
-              placeholder="수정이 필요한 내용을 구체적으로 작성해주세요..."
-              rows={4}
+              placeholder="수정할 내용을 작성해주세요..."
+              rows={8}
               disabled={loading}
+              style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', lineHeight: 1.7 }}
             />
             <button
               className="btn btn-primary"

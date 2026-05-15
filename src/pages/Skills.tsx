@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchSkillItems, fetchCorrections, getLocalSkills, type SkillItem, type Correction } from '../lib/firebase';
+import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, type SkillItem, type Correction } from '../lib/firebase';
 import { SEED_DATA } from '../lib/seedData';
 import BottomSheet from '../components/BottomSheet';
 
@@ -25,10 +25,15 @@ export default function Skills() {
       id: `static-${idx}`, ...item, createdAt: null,
     })) as SkillItem[];
     const local = getLocalSkills(cat);
+    const overrides = getLocalOverrides(cat);
     // Append local community skills that aren't already in seed
     const seedTitles = new Set(seed.map((s) => s.title));
     const extras = local.filter((l) => !seedTitles.has(l.title));
-    return [...seed, ...extras];
+    // Apply any saved overrides on top of seed items
+    const all = [...seed, ...extras].map((item) =>
+      overrides[item.id] ? { ...item, ...overrides[item.id] } : item,
+    );
+    return all;
   }
 
   const [items, setItems] = useState<SkillItem[]>(() => buildInitialItems(category));
@@ -36,8 +41,8 @@ export default function Skills() {
   const [loading] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('전체');
-  const [sheet, setSheet] = useState<{ open: boolean; itemId: string; itemTitle: string }>({
-    open: false, itemId: '', itemTitle: '',
+  const [sheet, setSheet] = useState<{ open: boolean; itemId: string; itemTitle: string; itemBody: string; itemTags: string[] }>({
+    open: false, itemId: '', itemTitle: '', itemBody: '', itemTags: [],
   });
 
   const load = useCallback(async () => {
@@ -50,7 +55,11 @@ export default function Skills() {
         // Merge Firebase results with any local-only community items
         const fbTitles = new Set(i.map((x) => x.title));
         const localExtras = getLocalSkills(category).filter((l) => !fbTitles.has(l.title));
-        setItems([...i, ...localExtras]);
+        const overrides = getLocalOverrides(category);
+        const merged = [...i, ...localExtras].map((item) =>
+          overrides[item.id] ? { ...item, ...overrides[item.id] } : item,
+        );
+        setItems(merged);
       } else {
         // No Firebase data — use seed + local
         setItems(buildInitialItems(category));
@@ -69,8 +78,8 @@ export default function Skills() {
 
   useEffect(() => { load(); }, [load]);
 
-  function openSheet(itemId: string, itemTitle: string) {
-    setSheet({ open: true, itemId, itemTitle });
+  function openSheet(itemId: string, itemTitle: string, itemBody = '', itemTags: string[] = []) {
+    setSheet({ open: true, itemId, itemTitle, itemBody, itemTags });
   }
 
   function getCorrectionsFor(itemId: string) {
@@ -220,7 +229,7 @@ export default function Skills() {
                     style={{ padding: '4px 10px', fontSize: '0.85rem' }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      openSheet(item.id, item.title);
+                      openSheet(item.id, item.title, item.body, item.tags ?? []);
                     }}
                     title="수정 제안 또는 추가 요청"
                   >
@@ -318,6 +327,8 @@ export default function Skills() {
         category={category}
         itemId={sheet.itemId}
         itemTitle={sheet.itemTitle}
+        itemBody={sheet.itemBody}
+        itemTags={sheet.itemTags}
         onItemAdded={load}
       />
     </div>

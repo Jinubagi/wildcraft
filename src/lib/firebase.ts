@@ -67,6 +67,23 @@ export function saveLocalSkill(category: string, item: Omit<SkillItem, 'id'>): S
   return newItem;
 }
 
+// Key for overrides (edits applied on top of seed/Firebase items)
+const OVERRIDE_KEY = (cat: string) => `wildcraft_overrides_${cat}`;
+
+export function getLocalOverrides(category: string): Record<string, Partial<SkillItem>> {
+  try {
+    return JSON.parse(localStorage.getItem(OVERRIDE_KEY(category)) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+
+export function saveLocalOverride(category: string, id: string, patch: Partial<SkillItem>): void {
+  const overrides = getLocalOverrides(category);
+  overrides[id] = { ...overrides[id], ...patch };
+  localStorage.setItem(OVERRIDE_KEY(category), JSON.stringify(overrides));
+}
+
 export interface Correction {
   id: string;
   itemId: string;
@@ -106,6 +123,24 @@ export async function submitCorrection(
   if (!isFirebaseConfigured) return;
   const ref = collection(db, 'skills', category, 'corrections');
   await withTimeout(addDoc(ref, { itemId, fix, type, timestamp: serverTimestamp() }));
+}
+
+// Update an existing skill item (body + tags)
+export async function updateSkillItem(
+  category: string,
+  id: string,
+  patch: Partial<Pick<SkillItem, 'body' | 'tags'>>,
+): Promise<void> {
+  // Always apply locally first
+  saveLocalOverride(category, id, patch);
+
+  // Try Firebase in background
+  if (isFirebaseConfigured && !id.startsWith('static-') && !id.startsWith('local-')) {
+    const ref = doc(db, 'skills', category, 'items', id);
+    withTimeout(
+      import('firebase/firestore').then(({ updateDoc }) => updateDoc(ref, patch as Record<string, unknown>)),
+    ).catch(() => {/* optional */});
+  }
 }
 
 // Add a new skill item (from AI generation)
