@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, type SkillItem, type Correction } from '../lib/firebase';
+import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, getDeletedItems, deleteSkillItem, type SkillItem, type Correction } from '../lib/firebase';
 import { SEED_DATA } from '../lib/seedData';
 import BottomSheet from '../components/BottomSheet';
 
@@ -21,18 +21,17 @@ export default function Skills() {
   const meta = CATEGORY_META[category] ?? { emoji: '📖', label: category, color: '#4a5e3a' };
 
   function buildInitialItems(cat: string): SkillItem[] {
+    const deleted = getDeletedItems(cat);
     const seed = (SEED_DATA[cat] ?? []).map((item, idx) => ({
       id: `static-${idx}`, ...item, createdAt: null,
     })) as SkillItem[];
     const local = getLocalSkills(cat);
     const overrides = getLocalOverrides(cat);
-    // Append local community skills that aren't already in seed
     const seedTitles = new Set(seed.map((s) => s.title));
     const extras = local.filter((l) => !seedTitles.has(l.title));
-    // Apply any saved overrides on top of seed items
-    const all = [...seed, ...extras].map((item) =>
-      overrides[item.id] ? { ...item, ...overrides[item.id] } : item,
-    );
+    const all = [...seed, ...extras]
+      .filter((item) => !deleted.has(item.id))
+      .map((item) => overrides[item.id] ? { ...item, ...overrides[item.id] } : item);
     return all;
   }
 
@@ -52,13 +51,13 @@ export default function Skills() {
         fetchCorrections(category),
       ]);
       if (i.length > 0) {
-        // Merge Firebase results with any local-only community items
+        const deleted = getDeletedItems(category);
         const fbTitles = new Set(i.map((x) => x.title));
         const localExtras = getLocalSkills(category).filter((l) => !fbTitles.has(l.title));
         const overrides = getLocalOverrides(category);
-        const merged = [...i, ...localExtras].map((item) =>
-          overrides[item.id] ? { ...item, ...overrides[item.id] } : item,
-        );
+        const merged = [...i, ...localExtras]
+          .filter((item) => !deleted.has(item.id))
+          .map((item) => overrides[item.id] ? { ...item, ...overrides[item.id] } : item);
         setItems(merged);
       } else {
         // No Firebase data — use seed + local
@@ -231,9 +230,26 @@ export default function Skills() {
                       e.stopPropagation();
                       openSheet(item.id, item.title, item.body, item.tags ?? []);
                     }}
-                    title="수정 제안 또는 추가 요청"
+                    title="수정"
                   >
                     ✏️
+                  </button>
+                  <button
+                    className="btn btn-ghost"
+                    style={{ padding: '4px 10px', fontSize: '0.85rem', color: '#c44' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const adminPin = import.meta.env.VITE_ADMIN_PIN;
+                      if (!adminPin) return alert('관리자 PIN이 설정되어 있지 않습니다.');
+                      const input = prompt('관리자 PIN을 입력하세요:');
+                      if (input !== adminPin) return alert('PIN이 틀렸습니다.');
+                      if (!confirm(`"${item.title}" 스킬을 삭제할까요?`)) return;
+                      deleteSkillItem(category, item.id);
+                      setItems((prev) => prev.filter((x) => x.id !== item.id));
+                    }}
+                    title="삭제 (관리자 전용)"
+                  >
+                    🗑️
                   </button>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     {isExpanded ? '▲' : '▼'}
