@@ -5,14 +5,14 @@ import NicknameModal, { getNickname } from './NicknameModal';
 const NAV_ITEMS = [
   { to: '/', label: '홈', icon: '🏕️', exact: true },
   { to: '/skills', label: '스킬', icon: '🛠️', exact: false },
-  { to: '/daily', label: '사부작', icon: '🪓', exact: false },
-  { to: '/ai', label: 'AI', icon: '🤖', exact: false },
-  { to: '/qna', label: 'Q&A', icon: '💬', exact: false },
   { to: '/checklist', label: '준비물', icon: '📋', exact: false },
+  { to: '/ai', label: 'AI', icon: '🤖', exact: false },
+  { to: '/daily', label: '사부작', icon: '🪓', exact: false },
+  { to: '/qna', label: 'Q&A', icon: '💬', exact: false },
+  { to: '/emergency', label: '긴급', icon: '🆘', exact: false },
   { to: '/woodcarving', label: '우드카빙', icon: '🪵', exact: false },
   { to: '/cooking', label: '요리', icon: '🍳', exact: false },
   { to: '/visual', label: '비주얼', icon: '📸', exact: false },
-  { to: '/emergency', label: '긴급', icon: '🆘', exact: false },
 ];
 
 export default function Layout() {

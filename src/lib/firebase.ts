@@ -69,26 +69,30 @@ export function saveLocalSkill(category: string, item: Omit<SkillItem, 'id'>): S
   return newItem;
 }
 
-// Key for deleted item IDs
+// Key for deleted item titles (title-based for stability across Firebase/seed/local IDs)
 const DELETED_KEY = (cat: string) => `wildcraft_deleted_${cat}`;
 
-export function getDeletedItems(category: string): Set<string> {
+export function getDeletedTitles(category: string): Set<string> {
   try {
     return new Set(JSON.parse(localStorage.getItem(DELETED_KEY(category)) ?? '[]') as string[]);
   } catch { return new Set(); }
 }
 
-export function deleteSkillItem(category: string, id: string): void {
-  // Mark as deleted in localStorage
-  const deleted = getDeletedItems(category);
-  deleted.add(id);
+export function deleteSkillItem(category: string, item: { id: string; title: string }): void {
+  // Store by title — stable across Firebase/seed/local ID differences
+  const deleted = getDeletedTitles(category);
+  deleted.add(item.title);
   localStorage.setItem(DELETED_KEY(category), JSON.stringify([...deleted]));
 
   // If it's a local community item, also remove from community skills list
-  if (id.startsWith('local-')) {
-    const existing = getLocalSkills(category).filter((s) => s.id !== id);
+  if (item.id.startsWith('local-')) {
+    const existing = getLocalSkills(category).filter((s) => s.id !== item.id);
     localStorage.setItem(LS_KEY(category), JSON.stringify(existing));
   }
+}
+
+export function restoreAllSkills(category: string): void {
+  localStorage.removeItem(DELETED_KEY(category));
 }
 
 // Key for overrides (edits applied on top of seed/Firebase items)

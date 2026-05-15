@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, getDeletedItems, deleteSkillItem, type SkillItem, type Correction } from '../lib/firebase';
+import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, getDeletedTitles, deleteSkillItem, type SkillItem, type Correction } from '../lib/firebase';
 import { SEED_DATA } from '../lib/seedData';
 import BottomSheet from '../components/BottomSheet';
 
@@ -21,7 +21,7 @@ export default function Skills() {
   const meta = CATEGORY_META[category] ?? { emoji: '📖', label: category, color: '#4a5e3a' };
 
   function buildInitialItems(cat: string): SkillItem[] {
-    const deleted = getDeletedItems(cat);
+    const deleted = getDeletedTitles(cat);
     const seed = (SEED_DATA[cat] ?? []).map((item, idx) => ({
       id: `static-${idx}`, ...item, createdAt: null,
     })) as SkillItem[];
@@ -30,7 +30,7 @@ export default function Skills() {
     const seedTitles = new Set(seed.map((s) => s.title));
     const extras = local.filter((l) => !seedTitles.has(l.title));
     const all = [...seed, ...extras]
-      .filter((item) => !deleted.has(item.id))
+      .filter((item) => !deleted.has(item.title))
       .map((item) => overrides[item.id] ? { ...item, ...overrides[item.id] } : item);
     return all;
   }
@@ -46,26 +46,32 @@ export default function Skills() {
 
   const load = useCallback(async () => {
     try {
-      const [i, c] = await Promise.all([
+      const [fbItems, c] = await Promise.all([
         fetchSkillItems(category),
         fetchCorrections(category),
       ]);
-      if (i.length > 0) {
-        const deleted = getDeletedItems(category);
-        const fbTitles = new Set(i.map((x) => x.title));
-        const localExtras = getLocalSkills(category).filter((l) => !fbTitles.has(l.title));
-        const overrides = getLocalOverrides(category);
-        const merged = [...i, ...localExtras]
-          .filter((item) => !deleted.has(item.id))
-          .map((item) => overrides[item.id] ? { ...item, ...overrides[item.id] } : item);
-        setItems(merged);
-      } else {
-        // No Firebase data — use seed + local
-        setItems(buildInitialItems(category));
-      }
+      // Always start from seed data so nothing goes missing
+      const seed = (SEED_DATA[category] ?? []).map((item, idx) => ({
+        id: `static-${idx}`, ...item, createdAt: null,
+      })) as SkillItem[];
+      // Firebase items override seed items with same title
+      const fbByTitle = new Map(fbItems.map((x) => [x.title, x]));
+      const base = seed.map((s) => fbByTitle.has(s.title) ? { ...s, ...fbByTitle.get(s.title)! } : s);
+      // Add Firebase-only extras (community additions not in seed)
+      const seedTitles = new Set(seed.map((s) => s.title));
+      const fbExtras = fbItems.filter((x) => !seedTitles.has(x.title));
+      // Add local-only extras
+      const allTitles = new Set([...base.map((x) => x.title), ...fbExtras.map((x) => x.title)]);
+      const localExtras = getLocalSkills(category).filter((l) => !allTitles.has(l.title));
+      const deleted = getDeletedTitles(category);
+      const overrides = getLocalOverrides(category);
+      const merged = [...base, ...fbExtras, ...localExtras]
+        .filter((item) => !deleted.has(item.title))
+        .map((item) => overrides[item.id] ? { ...item, ...overrides[item.id] } : item);
+      setItems(merged);
       setCorrections(c);
     } catch {
-      // Firebase not configured — keep what's already shown
+      // Firebase not configured — keep seed + local
     }
   }, [category]);
 
@@ -244,8 +250,8 @@ export default function Skills() {
                       const input = prompt('관리자 PIN을 입력하세요:');
                       if (input !== adminPin) return alert('PIN이 틀렸습니다.');
                       if (!confirm(`"${item.title}" 스킬을 삭제할까요?`)) return;
-                      deleteSkillItem(category, item.id);
-                      setItems((prev) => prev.filter((x) => x.id !== item.id));
+                      deleteSkillItem(category, { id: item.id, title: item.title });
+                      setItems((prev) => prev.filter((x) => x.title !== item.title));
                     }}
                     title="삭제 (관리자 전용)"
                   >
