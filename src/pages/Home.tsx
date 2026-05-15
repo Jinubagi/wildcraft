@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { askWildcraft } from '../lib/anthropic';
+import { logActivity } from '../lib/firebase';
+import { getNickname } from '../components/NicknameModal';
 
 const CATEGORIES = [
   { id: 'fire', emoji: '🔥', label: '불피우기', desc: '마찰발화, 부싯돌, 불 관리' },
@@ -209,6 +211,9 @@ function GlossarySection() {
   const [glossary, setGlossary] = useState<Record<string, string>>(loadGlossary);
   const [termInput, setTermInput] = useState('');
   const [defInput, setDefInput] = useState('');
+  const [editingTerm, setEditingTerm] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState('');
+  const [submitted, setSubmitted] = useState<string | null>(null);
 
   const today = new Date().toDateString();
   const termKeys = Object.keys(glossary);
@@ -291,38 +296,97 @@ function GlossarySection() {
           <dl style={{ margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {Object.entries(glossary).map(([term, def]) => (
               <div key={term} style={{
-                padding: '10px 12px', borderRadius: 8,
+                borderRadius: 8,
                 background: 'var(--cream)', border: '1px solid var(--border-light)',
-                display: 'flex', gap: 10, alignItems: 'flex-start',
+                overflow: 'hidden',
               }}>
-                <div style={{ flex: 1 }}>
-                  <dt style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{
-                      fontFamily: 'var(--font-display)', fontWeight: 700,
-                      fontSize: '0.95rem', color: 'var(--bark)',
-                    }}>{term}</span>
-                    <a
-                      href={`https://www.google.com/search?q=${encodeURIComponent(term + ' 부시크래프트')}&tbm=isch`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: '0.85rem', textDecoration: 'none' }}
-                      title="이미지 검색"
-                    >🔍</a>
-                  </dt>
-                  <dd style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{def}</dd>
+                <div style={{ padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <dt style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{
+                        fontFamily: 'var(--font-display)', fontWeight: 700,
+                        fontSize: '0.95rem', color: 'var(--bark)',
+                      }}>{term}</span>
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(term + ' 부시크래프트')}&tbm=isch`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '0.85rem', textDecoration: 'none' }}
+                        title="이미지 검색"
+                      >🔍</a>
+                    </dt>
+                    <dd style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{def}</dd>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    <button
+                      onClick={() => {
+                        if (editingTerm === term) { setEditingTerm(null); setSuggestion(''); }
+                        else { setEditingTerm(term); setSuggestion(def); setSubmitted(null); }
+                      }}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: '0.8rem', padding: '0 3px', lineHeight: 1,
+                        opacity: 0.6, transition: 'opacity 0.15s',
+                      }}
+                      title="수정 요청"
+                    >✏️</button>
+                    <button
+                      onClick={() => removeTerm(term)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--text-muted)', fontSize: '0.85rem',
+                        padding: '0 2px', lineHeight: 1,
+                        opacity: 0.6, transition: 'opacity 0.15s',
+                      }}
+                      title="삭제"
+                    >✕</button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => removeTerm(term)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--text-muted)', fontSize: '0.85rem',
-                    padding: '0 2px', lineHeight: 1, flexShrink: 0,
-                    opacity: 0.6, transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.6'; }}
-                  title="삭제"
-                >✕</button>
+
+                {/* 수정 요청 인라인 폼 */}
+                {editingTerm === term && (
+                  <div style={{
+                    padding: '10px 12px', borderTop: '1px solid var(--border-light)',
+                    background: 'rgba(74,124,62,0.04)',
+                  }}>
+                    {submitted === term ? (
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--moss)', fontWeight: 500 }}>
+                        ✅ 수정 요청이 제출됐습니다. 감사합니다!
+                      </p>
+                    ) : (
+                      <>
+                        <p style={{ margin: '0 0 6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          🏕️ 수정할 내용을 입력하세요. 확실한 정보만 요청해주세요.
+                        </p>
+                        <textarea
+                          className="input"
+                          value={suggestion}
+                          onChange={(e) => setSuggestion(e.target.value)}
+                          rows={3}
+                          style={{ fontSize: '0.85rem', padding: '7px 10px', marginBottom: 7 }}
+                        />
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                          <button
+                            className="btn btn-ghost"
+                            onClick={() => { setEditingTerm(null); setSuggestion(''); }}
+                            style={{ padding: '5px 12px', fontSize: '0.82rem' }}
+                          >취소</button>
+                          <button
+                            className="btn btn-primary"
+                            disabled={!suggestion.trim() || suggestion.trim() === def}
+                            onClick={async () => {
+                              const nickname = getNickname() || '익명';
+                              await logActivity(nickname, 'skill_edit', `[용어사전] ${term}: ${suggestion.trim()}`);
+                              setSubmitted(term);
+                              setSuggestion('');
+                            }}
+                            style={{ padding: '5px 12px', fontSize: '0.82rem' }}
+                          >요청 제출</button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </dl>
@@ -387,7 +451,7 @@ export default function Home() {
       <div style={{ textAlign: 'center', marginBottom: 28, paddingTop: 8 }}>
         <div style={{ fontSize: '3rem', marginBottom: 8 }}>🌿</div>
         <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', letterSpacing: '0.12em', fontWeight: 700 }}>
-          WILDCRAFT
+          BUSHKIPIDIA
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', fontStyle: 'italic' }}>
           자연 속에서 살아남는 기술의 수첩

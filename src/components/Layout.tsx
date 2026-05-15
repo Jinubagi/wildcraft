@@ -56,7 +56,7 @@ export default function Layout() {
             letterSpacing: '1px', padding: 0,
           }}
         >
-          🌿 WILDCRAFT
+          🌿 BUSHKIPIDIA
         </button>
 
         <div style={{ flex: 1 }} />
