@@ -4,6 +4,7 @@ import NicknameModal, { getNickname } from './NicknameModal';
 
 const NAV_ITEMS = [
   { to: '/', label: '홈', icon: '🏕️', exact: true },
+  { to: '/skills', label: '스킬', icon: '🛠️', exact: false },
   { to: '/daily', label: '사부작', icon: '🪓', exact: false },
   { to: '/ai', label: 'AI', icon: '🤖', exact: false },
   { to: '/qna', label: 'Q&A', icon: '💬', exact: false },

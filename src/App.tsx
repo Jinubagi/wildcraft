@@ -10,6 +10,7 @@ import QnA from './pages/QnA';
 import WoodCarving from './pages/WoodCarving';
 import BushcraftCooking from './pages/BushcraftCooking';
 import Visual from './pages/Visual';
+import SkillsHome from './pages/SkillsHome';
 export default function App() {
   return (
     <BrowserRouter>
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="daily" element={<Daily />} />
+          <Route path="skills" element={<SkillsHome />} />
           <Route path="skills/:category" element={<Skills />} />
           <Route path="ai" element={<AIPage />} />
           <Route path="emergency" element={<Emergency />} />
