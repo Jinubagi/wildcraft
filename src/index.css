@@ -24,16 +24,16 @@
   --shadow-lg: 0 4px 16px rgba(44,24,16,0.10), 0 12px 36px rgba(44,24,16,0.14);
 
   /* Typography */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Crimson Pro', 'Times New Roman', serif;
-  --font-ui: system-ui, -apple-system, sans-serif;
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-body: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
 
   /* Spacing */
   --nav-h: 60px;
 
   font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.65;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -58,12 +58,15 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   color: var(--bark);
-  line-height: 1.2;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); }
-h2 { font-size: clamp(1.3rem, 3vw, 1.8rem); }
-h3 { font-size: 1.2rem; }
+h1 { font-size: clamp(2rem, 6vw, 3.2rem); }
+h2 { font-size: clamp(1.4rem, 3.5vw, 2rem); }
+h3 { font-size: 1.35rem; }
+h4 { font-size: 1.15rem; }
 
 p { margin: 0; }
 
