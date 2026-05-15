@@ -29,6 +29,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
+// Wrap any promise with a timeout so Firestore permission hangs fail fast
+function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Firestore timeout')), ms),
+    ),
+  ]);
+}
+
 // Skills types
 export interface SkillItem {
   id: string;
@@ -36,6 +46,25 @@ export interface SkillItem {
   body: string;
   addedBy: 'official' | 'community';
   tags?: string[];
+  createdAt?: unknown;
+}
+
+// ---- localStorage fallback for community skills ----
+const LS_KEY = (cat: string) => `wildcraft_community_skills_${cat}`;
+
+export function getLocalSkills(category: string): SkillItem[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY(category)) ?? '[]') as SkillItem[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalSkill(category: string, item: Omit<SkillItem, 'id'>): SkillItem {
+  const existing = getLocalSkills(category);
+  const newItem: SkillItem = { ...item, id: `local-${Date.now()}` };
+  localStorage.setItem(LS_KEY(category), JSON.stringify([...existing, newItem]));
+  return newItem;
 }
 
 export interface Correction {
@@ -76,18 +105,25 @@ export async function submitCorrection(
 ) {
   if (!isFirebaseConfigured) return;
   const ref = collection(db, 'skills', category, 'corrections');
-  await addDoc(ref, { itemId, fix, type, timestamp: serverTimestamp() });
+  await withTimeout(addDoc(ref, { itemId, fix, type, timestamp: serverTimestamp() }));
 }
 
 // Add a new skill item (from AI generation)
+// Always saves to localStorage first, then tries Firebase as a bonus.
 export async function addSkillItem(
   category: string,
   item: Omit<SkillItem, 'id'>,
-) {
-  if (!isFirebaseConfigured) return '';
-  const ref = collection(db, 'skills', category, 'items');
-  const docRef = await addDoc(ref, { ...item, addedBy: 'community' });
-  return docRef.id;
+): Promise<string> {
+  // localStorage is the guaranteed persistent store
+  const saved = saveLocalSkill(category, item);
+
+  // Try Firebase in background — don't block or throw on failure
+  if (isFirebaseConfigured) {
+    const ref = collection(db, 'skills', category, 'items');
+    withTimeout(addDoc(ref, { ...item, addedBy: 'community' })).catch(() => {/* optional */});
+  }
+
+  return saved.id;
 }
 
 // Seed data runner
@@ -137,13 +173,13 @@ export async function submitQuestion(
 ): Promise<void> {
   if (!isFirebaseConfigured) return;
   const ref = collection(db, 'qna_questions');
-  await addDoc(ref, {
+  await withTimeout(addDoc(ref, {
     title,
     body,
     authorNickname: nickname,
     createdAt: serverTimestamp(),
     answersCount: 0,
-  });
+  }));
 }
 
 // Fetch answers for a question
@@ -164,20 +200,20 @@ export async function submitAnswer(
   if (!isFirebaseConfigured) return;
   const answersRef = collection(db, 'qna_questions', questionId, 'answers');
   const questionRef = doc(db, 'qna_questions', questionId);
-  await addDoc(answersRef, {
+  await withTimeout(addDoc(answersRef, {
     body,
     authorNickname: nickname,
     createdAt: serverTimestamp(),
-  });
+  }));
   // Increment answersCount
   try {
-    await runTransaction(db, async (transaction) => {
+    await withTimeout(runTransaction(db, async (transaction) => {
       const qDoc = await transaction.get(questionRef);
       if (qDoc.exists()) {
         const current = (qDoc.data().answersCount as number) ?? 0;
         transaction.update(questionRef, { answersCount: current + 1 });
       }
-    });
+    }));
   } catch {
     // Non-critical
   }

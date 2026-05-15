@@ -23,6 +23,7 @@ export default function BottomSheet({
   const [correctionText, setCorrectionText] = useState('');
   const [additionTopic, setAdditionTopic] = useState('');
   const [loading, setLoading] = useState(false);
+  const [generatedPreview, setGeneratedPreview] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -31,6 +32,7 @@ export default function BottomSheet({
     if (open) {
       setCorrectionText('');
       setAdditionTopic('');
+      setGeneratedPreview('');
       setSuccess('');
       setError('');
       setTab('correction');
@@ -62,18 +64,31 @@ export default function BottomSheet({
     if (!additionTopic.trim()) return;
     setLoading(true);
     setError('');
+    setGeneratedPreview('');
+
     try {
-      const body = await generateSkillContent(category, additionTopic);
+      const body = await generateSkillContent(
+        category,
+        additionTopic,
+        (chunk) => setGeneratedPreview(chunk),
+      );
+
+      // Save to localStorage immediately (guaranteed), Firebase in background
       await addSkillItem(category, {
         title: additionTopic,
         body,
         addedBy: 'community',
       });
+      onItemAdded?.();
+
       setSuccess('✅ AI가 새 스킬을 생성했습니다!');
       setAdditionTopic('');
-      onItemAdded?.();
-    } catch {
-      setError('⚠️ AI 생성 중 오류가 발생했습니다. API 키를 확인하세요.');
+      setGeneratedPreview('');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(msg.includes('시간 초과')
+        ? '⚠️ AI 응답이 너무 오래 걸립니다. API 키를 확인하거나 잠시 후 다시 시도하세요.'
+        : '⚠️ AI 생성 중 오류가 발생했습니다. VITE_ANTHROPIC_API_KEY를 확인하세요.');
     } finally {
       setLoading(false);
     }
@@ -186,9 +201,28 @@ export default function BottomSheet({
               style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}
             >
               {loading ? (
-                <><span className="spinner" /> AI 생성 중<span className="loading-dots" /></>
+                <><span className="spinner" style={{ marginRight: 6 }} /> AI 생성 중<span className="loading-dots" /></>
               ) : '🤖 AI로 스킬 생성하기'}
             </button>
+
+            {/* Streaming preview */}
+            {generatedPreview && (
+              <div style={{
+                marginTop: 12, padding: '10px 14px', borderRadius: 8,
+                background: 'var(--cream)', border: '1px solid var(--border)',
+                fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.6,
+                maxHeight: 180, overflowY: 'auto',
+                whiteSpace: 'pre-wrap',
+              }}>
+                <span style={{
+                  display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)',
+                  marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px',
+                }}>
+                  🤖 생성 중...
+                </span>
+                {generatedPreview}
+              </div>
+            )}
           </div>
         )}
 

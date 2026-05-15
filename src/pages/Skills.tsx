@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchSkillItems, fetchCorrections, type SkillItem, type Correction } from '../lib/firebase';
+import { fetchSkillItems, fetchCorrections, getLocalSkills, type SkillItem, type Correction } from '../lib/firebase';
 import { SEED_DATA } from '../lib/seedData';
 import BottomSheet from '../components/BottomSheet';
 
@@ -20,13 +20,18 @@ export default function Skills() {
   const navigate = useNavigate();
   const meta = CATEGORY_META[category] ?? { emoji: '📖', label: category, color: '#4a5e3a' };
 
-  const staticFallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
-    id: `static-${idx}`,
-    ...item,
-    createdAt: null,
-  })) as SkillItem[];
+  function buildInitialItems(cat: string): SkillItem[] {
+    const seed = (SEED_DATA[cat] ?? []).map((item, idx) => ({
+      id: `static-${idx}`, ...item, createdAt: null,
+    })) as SkillItem[];
+    const local = getLocalSkills(cat);
+    // Append local community skills that aren't already in seed
+    const seedTitles = new Set(seed.map((s) => s.title));
+    const extras = local.filter((l) => !seedTitles.has(l.title));
+    return [...seed, ...extras];
+  }
 
-  const [items, setItems] = useState<SkillItem[]>(staticFallback);
+  const [items, setItems] = useState<SkillItem[]>(() => buildInitialItems(category));
   const [corrections, setCorrections] = useState<Correction[]>([]);
   const [loading] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -41,19 +46,24 @@ export default function Skills() {
         fetchSkillItems(category),
         fetchCorrections(category),
       ]);
-      if (i.length > 0) setItems(i);
+      if (i.length > 0) {
+        // Merge Firebase results with any local-only community items
+        const fbTitles = new Set(i.map((x) => x.title));
+        const localExtras = getLocalSkills(category).filter((l) => !fbTitles.has(l.title));
+        setItems([...i, ...localExtras]);
+      } else {
+        // No Firebase data — use seed + local
+        setItems(buildInitialItems(category));
+      }
       setCorrections(c);
     } catch {
-      // Firebase not configured — keep static fallback already shown
+      // Firebase not configured — keep what's already shown
     }
   }, [category]);
 
-  // Reset to static data immediately when category changes
+  // Reset to seed + local data immediately when category changes
   useEffect(() => {
-    const fallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
-      id: `static-${idx}`, ...item, createdAt: null,
-    })) as SkillItem[];
-    setItems(fallback);
+    setItems(buildInitialItems(category));
     setExpanded(null);
   }, [category]);
 

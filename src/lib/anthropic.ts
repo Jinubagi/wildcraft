@@ -12,19 +12,21 @@ export interface ChatMessage {
   content: string;
 }
 
-// Streaming helper — calls onChunk with each text delta, returns full text
+// Streaming helper — calls onChunk with accumulated text, returns full text
 export async function streamMessage(
   params: Parameters<typeof client.messages.create>[0],
-  onChunk: (delta: string) => void,
+  onChunk: (accumulated: string) => void,
 ): Promise<string> {
-  const stream = client.messages.stream({ ...params, stream: true } as Parameters<typeof client.messages.create>[0]);
+  // Use the SDK's event-based API — more reliable than raw for-await iteration
+  const stream = client.messages.stream(
+    params as Parameters<typeof client.messages.stream>[0],
+  );
   let full = '';
-  for await (const event of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
-    if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta' && event.delta.text) {
-      full += event.delta.text;
-      onChunk(full);
-    }
-  }
+  stream.on('text', (_delta: string, snapshot: string) => {
+    full = snapshot;
+    onChunk(snapshot);
+  });
+  await stream.finalMessage();
   return full;
 }
 
@@ -141,6 +143,7 @@ export async function getEmergencyGuide(situation: string, onChunk?: (text: stri
 export async function generateSkillContent(
   category: string,
   topic: string,
+  onChunk?: (text: string) => void,
 ): Promise<string> {
   const categoryNames: Record<string, string> = {
     fire: '불피우기',
@@ -154,20 +157,35 @@ export async function generateSkillContent(
 요청된 주제에 대한 상세한 부시크래프트 기술 가이드를 작성하세요.
 한국어로, 실용적이고 따라할 수 있는 내용으로 작성합니다.`;
 
-  const response = await client.messages.create({
+  const params = {
     model: MODEL,
     max_tokens: 800,
     system,
     messages: [
       {
-        role: 'user',
+        role: 'user' as const,
         content: `카테고리: ${categoryNames[category] || category}\n주제: ${topic}\n\n이 주제에 대한 실용적인 부시크래프트 가이드를 300자 내외로 작성해주세요. 단계별로 명확하게.`,
       },
     ],
-  });
+  };
 
-  const block = response.content[0];
-  return block.type === 'text' ? block.text : '';
+  // 30-second timeout race
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('AI 응답 시간 초과 (30초)')), 30_000),
+  );
+
+  if (onChunk) {
+    return Promise.race([streamMessage(params, onChunk), timeout]);
+  }
+
+  const result = await Promise.race([
+    client.messages.create(params).then((r) => {
+      const block = r.content[0];
+      return block.type === 'text' ? block.text : '';
+    }),
+    timeout,
+  ]);
+  return result;
 }
 
 // Generate checklist
