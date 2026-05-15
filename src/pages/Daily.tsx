@@ -155,7 +155,7 @@ export default function Daily() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: expanded ? 16 : 0 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <button
             onClick={() => setExpanded(!expanded)}
             style={{
@@ -187,10 +187,52 @@ export default function Daily() {
           </button>
         </div>
 
+        {/* YouTube + Image buttons — always visible */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <a
+            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(mainSkill.title + ' 부시크래프트')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              padding: '8px 12px', borderRadius: 10,
+              background: '#ff0000', color: 'white',
+              fontSize: '0.85rem', fontWeight: 500,
+              textDecoration: 'none', transition: 'opacity 0.15s',
+              fontFamily: 'var(--font-body)',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = '0.85'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = '1'; }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
+              <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.5v-7l6.5 3.5-6.5 3.5z"/>
+            </svg>
+            유튜브 영상
+          </a>
+          <a
+            href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(mainSkill.title + ' 부시크래프트 방법')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              padding: '8px 12px', borderRadius: 10,
+              background: 'var(--cream)', color: 'var(--bark)',
+              border: '1px solid var(--border)',
+              fontSize: '0.85rem', fontWeight: 500,
+              textDecoration: 'none', transition: 'all 0.15s',
+              fontFamily: 'var(--font-body)',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--parch-dark)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--cream)'; }}
+          >
+            🖼️ 이미지 보기
+          </a>
+        </div>
+
         {/* Steps */}
         {expanded && (
           <ol style={{
-            margin: 0, paddingLeft: '1.5em',
+            margin: '14px 0 0', paddingLeft: '1.5em',
             display: 'flex', flexDirection: 'column', gap: 8,
           }}>
             {mainSkill.steps.map((step, i) => (
