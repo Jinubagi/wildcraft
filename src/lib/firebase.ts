@@ -13,7 +13,6 @@ import {
   Timestamp,
   runTransaction,
 } from 'firebase/firestore';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const isFirebaseConfigured = !!(
   import.meta.env.VITE_FIREBASE_API_KEY &&
@@ -29,35 +28,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const auth = getAuth(app);
-
-// Anonymous auth — graceful fallback if Firebase Auth not configured
-export async function ensureAuth(): Promise<string | null> {
-  if (!isFirebaseConfigured) return null;
-  try {
-    return await new Promise<string>((resolve, reject) => {
-      const unsub = onAuthStateChanged(
-        auth,
-        async (user) => {
-          unsub();
-          if (user) {
-            resolve(user.uid);
-          } else {
-            try {
-              const cred = await signInAnonymously(auth);
-              resolve(cred.user.uid);
-            } catch (e) {
-              reject(e);
-            }
-          }
-        },
-        reject,
-      );
-    });
-  } catch {
-    return null;
-  }
-}
 
 // Skills types
 export interface SkillItem {
@@ -105,7 +75,6 @@ export async function submitCorrection(
   type: 'correction' | 'addition',
 ) {
   if (!isFirebaseConfigured) return;
-  try { await ensureAuth(); } catch { /* continue without auth */ }
   const ref = collection(db, 'skills', category, 'corrections');
   await addDoc(ref, { itemId, fix, type, timestamp: serverTimestamp() });
 }
@@ -116,7 +85,6 @@ export async function addSkillItem(
   item: Omit<SkillItem, 'id'>,
 ) {
   if (!isFirebaseConfigured) return '';
-  try { await ensureAuth(); } catch { /* continue without auth */ }
   const ref = collection(db, 'skills', category, 'items');
   const docRef = await addDoc(ref, { ...item, addedBy: 'community' });
   return docRef.id;
@@ -168,7 +136,6 @@ export async function submitQuestion(
   nickname: string,
 ): Promise<void> {
   if (!isFirebaseConfigured) return;
-  try { await ensureAuth(); } catch { /* continue without auth */ }
   const ref = collection(db, 'qna_questions');
   await addDoc(ref, {
     title,
@@ -195,7 +162,6 @@ export async function submitAnswer(
   nickname: string,
 ): Promise<void> {
   if (!isFirebaseConfigured) return;
-  try { await ensureAuth(); } catch { /* continue without auth */ }
   const answersRef = collection(db, 'qna_questions', questionId, 'answers');
   const questionRef = doc(db, 'qna_questions', questionId);
   await addDoc(answersRef, {

@@ -71,9 +71,12 @@ export default function Layout() {
               style={({ isActive }) => ({
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '6px 12px', borderRadius: '6px',
-                color: isActive ? 'var(--cream)' : 'rgba(240,230,211,0.7)',
+                color: item.to === '/emergency'
+                  ? '#ff6b4a'
+                  : (isActive ? 'var(--cream)' : 'rgba(240,230,211,0.7)'),
                 background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
                 fontFamily: 'var(--font-body)', fontSize: '0.95rem',
+                fontWeight: item.to === '/emergency' ? 700 : 400,
                 textDecoration: 'none', transition: 'all 0.15s',
               })}
             >
@@ -162,12 +165,25 @@ export default function Layout() {
             end={item.exact}
             style={({ isActive }) => ({
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-              color: isActive ? 'var(--cream)' : 'rgba(240,230,211,0.5)',
+              color: item.to === '/emergency'
+                ? '#ff4d2e'
+                : (isActive ? 'var(--cream)' : 'rgba(240,230,211,0.5)'),
               textDecoration: 'none', minWidth: '52px',
               fontFamily: 'var(--font-ui)', fontSize: '0.65rem',
+              fontWeight: item.to === '/emergency' ? 700 : 400,
             })}
           >
-            <span style={{ fontSize: '1.3rem' }}>{item.icon}</span>
+            {item.to === '/emergency' ? (
+              <span style={{
+                fontSize: '1.3rem',
+                background: 'rgba(196,68,26,0.25)',
+                borderRadius: '50%',
+                width: 32, height: 32,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>{item.icon}</span>
+            ) : (
+              <span style={{ fontSize: '1.3rem' }}>{item.icon}</span>
+            )}
             <span>{item.label}</span>
           </NavLink>
         ))}

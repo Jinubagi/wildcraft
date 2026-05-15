@@ -91,11 +91,21 @@ function saveGlossary(g: Record<string, string>) {
   try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(g)); } catch { /* noop */ }
 }
 
+// ---- Daily index helper ----
+function getDailyIndex(list: string[], seed: string): number {
+  let hash = 0;
+  for (const ch of seed) hash = ((hash << 5) - hash) + ch.charCodeAt(0);
+  return Math.abs(hash) % list.length;
+}
+
 // ---- Rules Section ----
 function RulesSection() {
   const [open, setOpen] = useState(false);
   const [rules, setRules] = useState<string[]>(loadRules);
   const [input, setInput] = useState('');
+
+  const today = new Date().toDateString();
+  const dailyIdx = getDailyIndex(rules, today);
 
   function addRule() {
     const trimmed = input.trim();
@@ -120,21 +130,32 @@ function RulesSection() {
       overflow: 'hidden',
       boxShadow: 'var(--shadow-sm)',
     }}>
+      {/* Daily rule preview */}
+      <div style={{ padding: '14px 18px 0' }}>
+        <div style={{
+          fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.8px',
+          color: 'var(--text-muted)', marginBottom: 6,
+        }}>📜 오늘의 수칙</div>
+        <p style={{
+          fontSize: '0.93rem', lineHeight: 1.55, color: 'var(--bark)',
+          margin: '0 0 10px', fontStyle: 'italic',
+        }}>
+          {rules[dailyIdx]}
+        </p>
+      </div>
+
       <button
         onClick={() => setOpen(!open)}
         style={{
-          width: '100%', padding: '14px 18px',
+          width: '100%', padding: '8px 18px 14px',
           background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          fontFamily: 'var(--font-display)', fontWeight: 600,
-          fontSize: '1rem', color: 'var(--bark)',
-          transition: 'background 0.15s',
+          display: 'flex', alignItems: 'center', gap: 6,
+          fontFamily: 'var(--font-body)', fontSize: '0.82rem',
+          color: 'var(--text-muted)', transition: 'color 0.15s',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--cream)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
       >
-        <span>📋 기본 수칙</span>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', transition: 'transform 0.2s', display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none' }}>▼</span>
+        <span style={{ display: 'inline-block', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>▼</span>
+        <span>{open ? '접기' : `전체보기 (${rules.length}개)`}</span>
       </button>
 
       {open && (
@@ -189,6 +210,10 @@ function GlossarySection() {
   const [termInput, setTermInput] = useState('');
   const [defInput, setDefInput] = useState('');
 
+  const today = new Date().toDateString();
+  const termKeys = Object.keys(glossary);
+  const dailyKey = termKeys[getDailyIndex(termKeys, today + '1')] ?? termKeys[0];
+
   function addTerm() {
     const term = termInput.trim();
     const def = defInput.trim();
@@ -215,21 +240,50 @@ function GlossarySection() {
       overflow: 'hidden',
       boxShadow: 'var(--shadow-sm)',
     }}>
+      {/* Daily term preview */}
+      {dailyKey && (
+        <div style={{ padding: '14px 18px 0' }}>
+          <div style={{
+            fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.8px',
+            color: 'var(--text-muted)', marginBottom: 6,
+          }}>📖 오늘의 용어</div>
+          <div style={{
+            padding: '10px 12px', borderRadius: 8,
+            background: 'var(--cream)', border: '1px solid var(--border-light)',
+            marginBottom: 10,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: 700,
+                fontSize: '0.95rem', color: 'var(--bark)',
+              }}>{dailyKey}</span>
+              <a
+                href={`https://www.google.com/search?q=${encodeURIComponent(dailyKey + ' 부시크래프트')}&tbm=isch`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: '0.85rem', textDecoration: 'none' }}
+                title="이미지 검색"
+              >🔍</a>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+              {glossary[dailyKey]}
+            </p>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={() => setOpen(!open)}
         style={{
-          width: '100%', padding: '14px 18px',
+          width: '100%', padding: '8px 18px 14px',
           background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          fontFamily: 'var(--font-display)', fontWeight: 600,
-          fontSize: '1rem', color: 'var(--bark)',
-          transition: 'background 0.15s',
+          display: 'flex', alignItems: 'center', gap: 6,
+          fontFamily: 'var(--font-body)', fontSize: '0.82rem',
+          color: 'var(--text-muted)', transition: 'color 0.15s',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--cream)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
       >
-        <span>📖 용어 사전</span>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', transition: 'transform 0.2s', display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none' }}>▼</span>
+        <span style={{ display: 'inline-block', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>▼</span>
+        <span>{open ? '접기' : `전체보기 (${termKeys.length}개)`}</span>
       </button>
 
       {open && (
@@ -242,10 +296,19 @@ function GlossarySection() {
                 display: 'flex', gap: 10, alignItems: 'flex-start',
               }}>
                 <div style={{ flex: 1 }}>
-                  <dt style={{
-                    fontFamily: 'var(--font-display)', fontWeight: 700,
-                    fontSize: '0.95rem', color: 'var(--bark)', marginBottom: 2,
-                  }}>{term}</dt>
+                  <dt style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <span style={{
+                      fontFamily: 'var(--font-display)', fontWeight: 700,
+                      fontSize: '0.95rem', color: 'var(--bark)',
+                    }}>{term}</span>
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent(term + ' 부시크래프트')}&tbm=isch`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '0.85rem', textDecoration: 'none' }}
+                      title="이미지 검색"
+                    >🔍</a>
+                  </dt>
                   <dd style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{def}</dd>
                 </div>
                 <button
@@ -330,6 +393,11 @@ export default function Home() {
           자연 속에서 살아남는 기술의 수첩
         </p>
       </div>
+
+      {/* Rules & Glossary — daily summary, above categories */}
+      <p className="section-title">수칙 · 용어</p>
+      <RulesSection />
+      <GlossarySection />
 
       {/* Skill categories */}
       <p className="section-title">스킬 카테고리</p>
@@ -461,10 +529,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Rules & Glossary — at the bottom */}
-      <p className="section-title">수칙 · 용어</p>
-      <RulesSection />
-      <GlossarySection />
     </div>
   );
 }

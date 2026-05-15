@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchSkillItems, fetchCorrections, type SkillItem, type Correction } from '../lib/firebase';
+import { SEED_DATA } from '../lib/seedData';
 import BottomSheet from '../components/BottomSheet';
 
 const CATEGORY_META: Record<string, { emoji: string; label: string; color: string }> = {
@@ -37,8 +38,23 @@ export default function Skills() {
       ]);
       setItems(i);
       setCorrections(c);
+      // Firebase returned empty — fall back to static seed data
+      if (i.length === 0) {
+        const fallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
+          id: `static-${idx}`,
+          ...item,
+          createdAt: null,
+        }));
+        setItems(fallback as SkillItem[]);
+      }
     } catch {
-      // Firebase not configured yet – show placeholder message
+      // Firebase not configured — fall back to static seed data
+      const fallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
+        id: `static-${idx}`,
+        ...item,
+        createdAt: null,
+      }));
+      setItems(fallback as SkillItem[]);
     } finally {
       setLoading(false);
     }
@@ -118,7 +134,7 @@ export default function Skills() {
         </div>
       )}
 
-      {/* Firebase not configured notice */}
+      {/* No items at all notice */}
       {!loading && items.length === 0 && (
         <div style={{
           padding: '24px', borderRadius: 12, background: 'var(--cream)',
@@ -126,10 +142,7 @@ export default function Skills() {
         }}>
           <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>📭 스킬 데이터 없음</p>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            Firebase를 설정하고 시드 데이터를 실행하면 스킬이 표시됩니다.
-          </p>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 8 }}>
-            README.md → "Firebase 시드 데이터 추가하기" 참고
+            이 카테고리의 스킬 데이터를 불러올 수 없습니다.
           </p>
         </div>
       )}
