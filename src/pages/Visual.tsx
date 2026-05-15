@@ -31,36 +31,44 @@ export default function Visual() {
         먼저 인스타에서 만나보세요!
       </p>
 
-      <a
-        href="https://www.instagram.com/rinacamp_"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '13px 24px',
-          borderRadius: 12,
-          background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-          color: 'white',
-          textDecoration: 'none',
-          fontWeight: 600,
-          fontSize: '1rem',
-          boxShadow: '0 4px 16px rgba(220,39,67,0.35)',
-          transition: 'transform 0.15s, box-shadow 0.15s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(220,39,67,0.45)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = '';
-          e.currentTarget.style.boxShadow = '0 4px 16px rgba(220,39,67,0.35)';
-        }}
-      >
-        <InstagramIcon />
-        @rinacamp_
-      </a>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {[
+          { handle: '@rinacamp_', url: 'https://www.instagram.com/rinacamp_' },
+          { handle: '@bushcraftvisual', url: 'https://www.instagram.com/bushcraftvisual' },
+        ].map(({ handle, url }) => (
+          <a
+            key={handle}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '13px 24px',
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+              color: 'white',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '1rem',
+              boxShadow: '0 4px 16px rgba(220,39,67,0.35)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(220,39,67,0.45)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = '';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(220,39,67,0.35)';
+            }}
+          >
+            <InstagramIcon />
+            {handle}
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
