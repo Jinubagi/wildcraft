@@ -12,9 +12,26 @@ export interface ChatMessage {
   content: string;
 }
 
+// Streaming helper — calls onChunk with each text delta, returns full text
+export async function streamMessage(
+  params: Parameters<typeof client.messages.create>[0],
+  onChunk: (delta: string) => void,
+): Promise<string> {
+  const stream = client.messages.stream({ ...params, stream: true } as Parameters<typeof client.messages.create>[0]);
+  let full = '';
+  for await (const event of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
+    if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta' && event.delta.text) {
+      full += event.delta.text;
+      onChunk(full);
+    }
+  }
+  return full;
+}
+
 // General AI chat
 export async function askWildcraft(
   messages: ChatMessage[],
+  onChunk?: (text: string) => void,
   systemPrompt?: string,
 ): Promise<string> {
   const system =
@@ -24,19 +41,16 @@ export async function askWildcraft(
 항상 한국어로 답변하고, 실용적이고 안전한 정보를 제공하세요.
 응답은 마크다운을 사용해 구조화하되 간결하게 작성하세요.`;
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 2048,
-    system,
-    messages,
-  });
-
+  if (onChunk) {
+    return streamMessage({ model: MODEL, max_tokens: 2048, system, messages }, onChunk);
+  }
+  const response = await client.messages.create({ model: MODEL, max_tokens: 2048, system, messages });
   const block = response.content[0];
   return block.type === 'text' ? block.text : '';
 }
 
 // Knot recommendation
-export async function recommendKnot(situation: string): Promise<string> {
+export async function recommendKnot(situation: string, onChunk?: (text: string) => void): Promise<string> {
   const system = `당신은 매듭 전문가 부시크래프터입니다.
 상황을 설명하면 최적의 매듭을 추천하고 단계별 묶는 방법을 설명합니다.
 반드시 다음 형식으로 응답하세요:
@@ -57,19 +71,15 @@ export async function recommendKnot(situation: string): Promise<string> {
 
 **YouTube 검색**: [검색어 (예: "bowline knot tutorial")]`;
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system,
-    messages: [{ role: 'user', content: `상황: ${situation}` }],
-  });
-
+  const params = { model: MODEL, max_tokens: 1024, system, messages: [{ role: 'user' as const, content: `상황: ${situation}` }] };
+  if (onChunk) return streamMessage(params, onChunk);
+  const response = await client.messages.create(params);
   const block = response.content[0];
   return block.type === 'text' ? block.text : '';
 }
 
 // Equipment analysis
-export async function analyzeEquipment(gear: string): Promise<string> {
+export async function analyzeEquipment(gear: string, onChunk?: (text: string) => void): Promise<string> {
   const system = `당신은 부시크래프트 장비 분석 전문가입니다.
 보유한 장비 목록을 받으면 그 장비로 야외에서 할 수 있는 것들을 분석합니다.
 실용적이고 창의적인 활용법을 알려주세요.
@@ -90,19 +100,15 @@ export async function analyzeEquipment(gear: string): Promise<string> {
 **부족한 것 / 추천 추가 장비**
 [있으면 더 좋을 것들]`;
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system,
-    messages: [{ role: 'user', content: `보유 장비:\n${gear}` }],
-  });
-
+  const params = { model: MODEL, max_tokens: 1024, system, messages: [{ role: 'user' as const, content: `보유 장비:\n${gear}` }] };
+  if (onChunk) return streamMessage(params, onChunk);
+  const response = await client.messages.create(params);
   const block = response.content[0];
   return block.type === 'text' ? block.text : '';
 }
 
 // Emergency response
-export async function getEmergencyGuide(situation: string): Promise<string> {
+export async function getEmergencyGuide(situation: string, onChunk?: (text: string) => void): Promise<string> {
   const system = `당신은 야외 응급 처치 및 생존 전문가입니다.
 긴급 상황을 설명하면 즉각적인 단계별 대처법을 제공합니다.
 명확하고 빠르게 읽을 수 있도록 작성하세요.
@@ -124,13 +130,9 @@ export async function getEmergencyGuide(situation: string): Promise<string> {
 
 ⚠️ 심각한 부상이나 생명 위협 시 즉시 119에 신고하세요.`;
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system,
-    messages: [{ role: 'user', content: `긴급 상황: ${situation}` }],
-  });
-
+  const params = { model: MODEL, max_tokens: 1024, system, messages: [{ role: 'user' as const, content: `긴급 상황: ${situation}` }] };
+  if (onChunk) return streamMessage(params, onChunk);
+  const response = await client.messages.create(params);
   const block = response.content[0];
   return block.type === 'text' ? block.text : '';
 }

@@ -50,33 +50,41 @@ export default function AIPage() {
     setMessages((prev) => [...prev, { role: 'user', content: userMsg, mode }]);
     setLoading(true);
 
-    try {
-      let response = '';
+    // Add empty assistant message — will be filled via streaming
+    setMessages((prev) => [...prev, { role: 'assistant', content: '', mode }]);
 
+    const onChunk = (text: string) => {
+      setMessages((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { role: 'assistant', content: text, mode };
+        return next;
+      });
+    };
+
+    try {
       if (mode === 'chat') {
         const chatHistory: ChatMessage[] = messages
           .filter((m) => m.mode === 'chat')
           .map(({ role, content }) => ({ role, content }));
         chatHistory.push({ role: 'user', content: userMsg });
-        response = await askWildcraft(chatHistory);
+        await askWildcraft(chatHistory, onChunk);
       } else if (mode === 'knots') {
-        response = await recommendKnot(userMsg);
+        await recommendKnot(userMsg, onChunk);
       } else if (mode === 'gear') {
-        response = await analyzeEquipment(userMsg);
+        await analyzeEquipment(userMsg, onChunk);
       } else if (mode === 'emergency') {
-        response = await getEmergencyGuide(userMsg);
+        await getEmergencyGuide(userMsg, onChunk);
       }
-
-      setMessages((prev) => [...prev, { role: 'assistant', content: response, mode }]);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
+      setMessages((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = {
           role: 'assistant',
           content: '⚠️ API 오류가 발생했습니다. `VITE_ANTHROPIC_API_KEY`를 `.env.local`에 설정해주세요.',
           mode,
-        },
-      ]);
+        };
+        return next;
+      });
     } finally {
       setLoading(false);
     }
@@ -172,7 +180,7 @@ export default function AIPage() {
           </div>
         ))}
 
-        {loading && (
+        {loading && modeMessages[modeMessages.length - 1]?.content === '' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <div style={{
               width: 28, height: 28, borderRadius: '50%',

@@ -20,9 +20,15 @@ export default function Skills() {
   const navigate = useNavigate();
   const meta = CATEGORY_META[category] ?? { emoji: '📖', label: category, color: '#4a5e3a' };
 
-  const [items, setItems] = useState<SkillItem[]>([]);
+  const staticFallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
+    id: `static-${idx}`,
+    ...item,
+    createdAt: null,
+  })) as SkillItem[];
+
+  const [items, setItems] = useState<SkillItem[]>(staticFallback);
   const [corrections, setCorrections] = useState<Correction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('전체');
   const [sheet, setSheet] = useState<{ open: boolean; itemId: string; itemTitle: string }>({
@@ -30,34 +36,25 @@ export default function Skills() {
   });
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
       const [i, c] = await Promise.all([
         fetchSkillItems(category),
         fetchCorrections(category),
       ]);
-      setItems(i);
+      if (i.length > 0) setItems(i);
       setCorrections(c);
-      // Firebase returned empty — fall back to static seed data
-      if (i.length === 0) {
-        const fallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
-          id: `static-${idx}`,
-          ...item,
-          createdAt: null,
-        }));
-        setItems(fallback as SkillItem[]);
-      }
     } catch {
-      // Firebase not configured — fall back to static seed data
-      const fallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
-        id: `static-${idx}`,
-        ...item,
-        createdAt: null,
-      }));
-      setItems(fallback as SkillItem[]);
-    } finally {
-      setLoading(false);
+      // Firebase not configured — keep static fallback already shown
     }
+  }, [category]);
+
+  // Reset to static data immediately when category changes
+  useEffect(() => {
+    const fallback = (SEED_DATA[category] ?? []).map((item, idx) => ({
+      id: `static-${idx}`, ...item, createdAt: null,
+    })) as SkillItem[];
+    setItems(fallback);
+    setExpanded(null);
   }, [category]);
 
   useEffect(() => { load(); }, [load]);
