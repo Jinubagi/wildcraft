@@ -175,8 +175,19 @@ export default function BottomSheet({
         {/* Content */}
         {tab === 'correction' ? (
           <div>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: 10 }}>
+            <p style={{
+              fontSize: '0.78rem', color: 'var(--text-muted)',
+              marginBottom: 10, lineHeight: 1.5,
+            }}>
               내용을 직접 수정하고 등급을 설정하세요.
+            </p>
+            <p style={{
+              fontSize: '0.75rem', color: '#a83515',
+              background: '#fce8e2', border: '1px solid #f0c8b8',
+              borderRadius: 8, padding: '7px 10px',
+              marginBottom: 12, lineHeight: 1.55,
+            }}>
+              🏕️ 필드에서 쓰이는 정보입니다. 확실한 경험과 지식 기반으로만 수정해주세요. 틀린 정보가 사고로 이어질 수 있습니다.
             </p>
 
             {/* Level selector */}
