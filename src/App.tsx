@@ -7,6 +7,8 @@ import AIPage from './pages/AIPage';
 import Emergency from './pages/Emergency';
 import Checklist from './pages/Checklist';
 import QnA from './pages/QnA';
+import WoodCarving from './pages/WoodCarving';
+import BushcraftCooking from './pages/BushcraftCooking';
 
 export default function App() {
   return (
@@ -20,6 +22,8 @@ export default function App() {
           <Route path="emergency" element={<Emergency />} />
           <Route path="checklist" element={<Checklist />} />
           <Route path="qna" element={<QnA />} />
+          <Route path="woodcarving" element={<WoodCarving />} />
+          <Route path="cooking" element={<BushcraftCooking />} />
         </Route>
       </Routes>
     </BrowserRouter>

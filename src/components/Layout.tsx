@@ -8,6 +8,8 @@ const NAV_ITEMS = [
   { to: '/ai', label: 'AI', icon: '🤖', exact: false },
   { to: '/qna', label: 'Q&A', icon: '💬', exact: false },
   { to: '/checklist', label: '준비물', icon: '📋', exact: false },
+  { to: '/woodcarving', label: '우드카빙', icon: '🪵', exact: false },
+  { to: '/cooking', label: '요리', icon: '🍳', exact: false },
   { to: '/emergency', label: '긴급', icon: '🆘', exact: false },
 ];
 
