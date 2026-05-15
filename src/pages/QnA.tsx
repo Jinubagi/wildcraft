@@ -98,7 +98,7 @@ function AnswerPanel({ questionId, onAnswerAdded }: AnswerPanelProps) {
       {!showForm ? (
         <button
           onClick={() => {
-            if (!nickname) { setError('닉네임을 먼저 설정해주세요.'); return; }
+            if (!nickname) { setError('필드에서 사용할 닉네임을 먼저 설정해주세요.'); return; }
             setShowForm(true);
           }}
           style={{
@@ -208,7 +208,7 @@ export default function QnA() {
           <span>Q&A</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-          야외 활동에 대해 서로 묻고 답하는 공간
+          용사들이 야외 활동에 대해 서로 묻고 답하는 공간
         </p>
       </div>
 
@@ -218,7 +218,7 @@ export default function QnA() {
           className="btn btn-primary"
           onClick={() => {
             if (!nickname) {
-              setSubmitError('닉네임을 먼저 설정해주세요. 헤더의 👤 버튼을 눌러 설정하세요.');
+              setSubmitError('필드에서 사용할 닉네임을 먼저 설정해주세요. 헤더의 👤 버튼을 눌러 설정하세요.');
               setShowForm(false);
               return;
             }

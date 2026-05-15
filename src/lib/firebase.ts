@@ -15,6 +15,11 @@ import {
 } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
+const isFirebaseConfigured = !!(
+  import.meta.env.VITE_FIREBASE_API_KEY &&
+  import.meta.env.VITE_FIREBASE_PROJECT_ID
+);
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -26,18 +31,32 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Anonymous auth
-export async function ensureAuth() {
-  return new Promise<string>((resolve) => {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        resolve(user.uid);
-      } else {
-        const cred = await signInAnonymously(auth);
-        resolve(cred.user.uid);
-      }
+// Anonymous auth — graceful fallback if Firebase Auth not configured
+export async function ensureAuth(): Promise<string | null> {
+  if (!isFirebaseConfigured) return null;
+  try {
+    return await new Promise<string>((resolve, reject) => {
+      const unsub = onAuthStateChanged(
+        auth,
+        async (user) => {
+          unsub();
+          if (user) {
+            resolve(user.uid);
+          } else {
+            try {
+              const cred = await signInAnonymously(auth);
+              resolve(cred.user.uid);
+            } catch (e) {
+              reject(e);
+            }
+          }
+        },
+        reject,
+      );
     });
-  });
+  } catch {
+    return null;
+  }
 }
 
 // Skills types
@@ -59,6 +78,7 @@ export interface Correction {
 
 // Fetch skill items for a category
 export async function fetchSkillItems(category: string): Promise<SkillItem[]> {
+  if (!isFirebaseConfigured) return [];
   const ref = collection(db, 'skills', category, 'items');
   const snap = await getDocs(ref);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as SkillItem));
@@ -66,6 +86,7 @@ export async function fetchSkillItems(category: string): Promise<SkillItem[]> {
 
 // Fetch corrections for a category
 export async function fetchCorrections(category: string): Promise<Correction[]> {
+  if (!isFirebaseConfigured) return [];
   const ref = collection(db, 'skills', category, 'corrections');
   const q = query(ref, orderBy('timestamp', 'desc'));
   const snap = await getDocs(q);
@@ -83,7 +104,8 @@ export async function submitCorrection(
   fix: string,
   type: 'correction' | 'addition',
 ) {
-  await ensureAuth();
+  if (!isFirebaseConfigured) return;
+  try { await ensureAuth(); } catch { /* continue without auth */ }
   const ref = collection(db, 'skills', category, 'corrections');
   await addDoc(ref, { itemId, fix, type, timestamp: serverTimestamp() });
 }
@@ -93,7 +115,8 @@ export async function addSkillItem(
   category: string,
   item: Omit<SkillItem, 'id'>,
 ) {
-  await ensureAuth();
+  if (!isFirebaseConfigured) return '';
+  try { await ensureAuth(); } catch { /* continue without auth */ }
   const ref = collection(db, 'skills', category, 'items');
   const docRef = await addDoc(ref, { ...item, addedBy: 'community' });
   return docRef.id;
@@ -104,6 +127,7 @@ export async function seedCategory(
   category: string,
   items: Omit<SkillItem, 'id'>[],
 ) {
+  if (!isFirebaseConfigured) return;
   for (const item of items) {
     const ref = doc(collection(db, 'skills', category, 'items'));
     await setDoc(ref, { ...item, addedBy: 'official' });
@@ -130,6 +154,7 @@ export interface QnaAnswer {
 
 // Fetch all questions ordered by newest first
 export async function fetchQuestions(): Promise<QnaQuestion[]> {
+  if (!isFirebaseConfigured) return [];
   const ref = collection(db, 'qna_questions');
   const q = query(ref, orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
@@ -142,7 +167,8 @@ export async function submitQuestion(
   body: string,
   nickname: string,
 ): Promise<void> {
-  await ensureAuth();
+  if (!isFirebaseConfigured) return;
+  try { await ensureAuth(); } catch { /* continue without auth */ }
   const ref = collection(db, 'qna_questions');
   await addDoc(ref, {
     title,
@@ -155,6 +181,7 @@ export async function submitQuestion(
 
 // Fetch answers for a question
 export async function fetchAnswers(questionId: string): Promise<QnaAnswer[]> {
+  if (!isFirebaseConfigured) return [];
   const ref = collection(db, 'qna_questions', questionId, 'answers');
   const q = query(ref, orderBy('createdAt', 'asc'));
   const snap = await getDocs(q);
@@ -167,7 +194,8 @@ export async function submitAnswer(
   body: string,
   nickname: string,
 ): Promise<void> {
-  await ensureAuth();
+  if (!isFirebaseConfigured) return;
+  try { await ensureAuth(); } catch { /* continue without auth */ }
   const answersRef = collection(db, 'qna_questions', questionId, 'answers');
   const questionRef = doc(db, 'qna_questions', questionId);
   await addDoc(answersRef, {

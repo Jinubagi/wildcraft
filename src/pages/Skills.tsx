@@ -78,7 +78,7 @@ export default function Skills() {
           <span>{meta.label}</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-          {items.length}개의 스킬 · 커뮤니티가 보완합니다
+          {items.length}개의 스킬 · 용사들이 보완합니다
         </p>
       </div>
 
@@ -182,7 +182,7 @@ export default function Skills() {
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {item.addedBy === 'community' && (
-                      <span className="tag tag-ember">유저 보완</span>
+                      <span className="tag tag-ember">필드 보완</span>
                     )}
                     {item.tags?.map((t) => (
                       <span key={t} className="tag tag-bark">{t}</span>
@@ -229,7 +229,7 @@ export default function Skills() {
                         letterSpacing: '0.8px', color: 'var(--text-muted)',
                         marginBottom: 8,
                       }}>
-                        커뮤니티 보완
+                        필드 보완
                       </p>
                       {itemCorrections.map((c) => (
                         <div

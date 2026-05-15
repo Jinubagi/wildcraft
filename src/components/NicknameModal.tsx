@@ -81,8 +81,8 @@ export default function NicknameModal({ open, onClose, isFirstVisit = false }: P
           </h3>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>
             {isFirstVisit
-              ? '커뮤니티에서 사용할 닉네임을 설정하세요'
-              : 'Q&A 및 커뮤니티에서 사용되는 이름'}
+              ? '필드에서 사용할 닉네임을 알려주세요, 용사님!'
+              : 'Q&A 및 필드에서 사용되는 이름'}
           </p>
         </div>
 
