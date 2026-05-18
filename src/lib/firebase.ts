@@ -315,7 +315,7 @@ export async function registerNickname(nickname: string): Promise<void> {
 export interface ActivityLog {
   id: string;
   nickname: string;
-  action: 'skill_edit' | 'skill_add' | 'daily_done' | 'qna_question' | 'qna_answer';
+  action: 'skill_edit' | 'skill_add' | 'skill_delete' | 'daily_done' | 'qna_question' | 'qna_answer';
   detail: string;        // human-readable: "보울라인 매듭 수정"
   category?: string;
   timestamp: Timestamp | null;

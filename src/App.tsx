@@ -12,6 +12,7 @@ import BushcraftCooking from './pages/BushcraftCooking';
 import Visual from './pages/Visual';
 import SkillsHome from './pages/SkillsHome';
 import FieldGuide from './pages/FieldGuide';
+import ActivityLog from './pages/ActivityLog';
 export default function App() {
   return (
     <BrowserRouter>
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="cooking" element={<BushcraftCooking />} />
           <Route path="visual" element={<Visual />} />
           <Route path="fieldguide" element={<FieldGuide />} />
+          <Route path="activity" element={<ActivityLog />} />
         </Route>
       </Routes>
     </BrowserRouter>

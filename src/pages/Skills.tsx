@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, getDeletedTitles, deleteSkillItem, type SkillItem, type Correction } from '../lib/firebase';
+import { fetchSkillItems, fetchCorrections, getLocalSkills, getLocalOverrides, getDeletedTitles, deleteSkillItem, logActivity, type SkillItem, type Correction } from '../lib/firebase';
+import { getNickname } from '../components/NicknameModal';
 import { SEED_DATA } from '../lib/seedData';
 import BottomSheet from '../components/BottomSheet';
 
@@ -251,6 +252,7 @@ export default function Skills() {
                       if (input !== adminPin) return alert('PIN이 틀렸습니다.');
                       if (!confirm(`"${item.title}" 스킬을 삭제할까요?`)) return;
                       deleteSkillItem(category, { id: item.id, title: item.title });
+                      logActivity(getNickname() || '관리자', 'skill_delete', `${item.title} 삭제`, category);
                       setItems((prev) => prev.filter((x) => x.title !== item.title));
                     }}
                     title="삭제 (관리자 전용)"
