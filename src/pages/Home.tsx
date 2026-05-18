@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { askWildcraft } from '../lib/anthropic';
 import { logActivity } from '../lib/firebase';
 import { getNickname } from '../components/NicknameModal';
+import { getTodayTask, getHistory, markTodayComplete, isTodayCompleted, type DailyTask } from '../lib/dailyTasks';
 
 const CATEGORIES = [
   { id: 'fire', emoji: '🔥', label: '불피우기', desc: '마찰발화, 부싯돌, 불 관리' },
@@ -91,6 +92,192 @@ function loadGlossary(): Record<string, string> {
 
 function saveGlossary(g: Record<string, string>) {
   try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(g)); } catch { /* noop */ }
+}
+
+// ---- 1일 1부시 Section ----
+const IMPORTANCE_LABEL = ['', '보통', '권장', '필수'];
+const IMPORTANCE_COLOR = ['', '#688060', '#b45309', '#c4441a'];
+const CATEGORY_EMOJI: Record<string, string> = {
+  '스킬': '🪓', '요리': '🍳', '카빙': '🔪', '손질': '🐟', '매듭': '🪢', '응급': '🚨', '장비': '🎒',
+};
+
+function DailyBushSection() {
+  const [task] = useState<DailyTask>(getTodayTask);
+  const [expanded, setExpanded] = useState(false);
+  const [completed, setCompleted] = useState(isTodayCompleted);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const history = getHistory();
+
+  const isWeekend = [0, 6].includes(new Date().getDay());
+  const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(task.youtubeQuery)}`;
+
+  function handleComplete() {
+    markTodayComplete(task);
+    setCompleted(true);
+    const nickname = getNickname() || '익명';
+    logActivity(nickname, 'daily_done', `1일1부시 완료: ${task.title}`);
+  }
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* 헤더 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <p className="section-title" style={{ margin: 0 }}>
+          🌿 1일 1부시 — {isWeekend ? '주말 필드' : '평일 홈/도심'}
+        </p>
+        <button
+          onClick={() => setHistoryOpen(!historyOpen)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-body)',
+          }}
+        >
+          📋 히스토리
+        </button>
+      </div>
+
+      {/* 히스토리 패널 */}
+      {historyOpen && (
+        <div style={{
+          marginBottom: 12, padding: '12px 14px', borderRadius: 10,
+          background: 'var(--cream)', border: '1px solid var(--border)',
+        }}>
+          <p style={{ margin: '0 0 8px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            최근 완료 기록
+          </p>
+          {history.length === 0 && <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>아직 기록 없음</p>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {history.slice(0, 10).map((h) => (
+              <div key={h.date} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '0.8rem' }}>{CATEGORY_EMOJI[h.category] ?? '🌿'}</span>
+                <span style={{ flex: 1, fontSize: '0.83rem', color: 'var(--bark)' }}>{h.title}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{h.date}</span>
+                <span style={{ fontSize: '0.75rem', color: '#3a7a3a' }}>✅</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 메인 카드 */}
+      <div style={{
+        background: 'linear-gradient(145deg, var(--surface) 0%, #fdfaf7 100%)',
+        border: `1.5px solid ${completed ? '#3a7a3a' : 'var(--border)'}`,
+        borderRadius: 14,
+        overflow: 'hidden',
+        boxShadow: 'var(--shadow-sm)',
+      }}>
+        {/* 제목 + 태그 */}
+        <div style={{ padding: '14px 16px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 8px', borderRadius: 10,
+              background: 'var(--moss-dim)', color: 'var(--moss-light)',
+              fontWeight: 600, fontFamily: 'var(--font-ui)',
+            }}>
+              {CATEGORY_EMOJI[task.category]} {task.category}
+            </span>
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 8px', borderRadius: 10,
+              background: `${IMPORTANCE_COLOR[task.importance]}18`,
+              color: IMPORTANCE_COLOR[task.importance],
+              border: `1px solid ${IMPORTANCE_COLOR[task.importance]}33`,
+              fontWeight: 600, fontFamily: 'var(--font-ui)',
+            }}>
+              {'⭐'.repeat(task.importance)} {IMPORTANCE_LABEL[task.importance]}
+            </span>
+            {completed && (
+              <span style={{
+                fontSize: '0.72rem', padding: '2px 8px', borderRadius: 10,
+                background: 'rgba(58,122,58,0.12)', color: '#3a7a3a',
+                fontWeight: 600, fontFamily: 'var(--font-ui)',
+              }}>✅ 완료</span>
+            )}
+          </div>
+          <h2 style={{ margin: '0 0 12px', fontSize: '1.15rem', color: 'var(--bark)', fontWeight: 700 }}>
+            {task.title}
+          </h2>
+        </div>
+
+        {/* 유튜브 영상 영역 */}
+        <a
+          href={youtubeSearchUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'block', margin: '0 16px 14px',
+            borderRadius: 10, overflow: 'hidden',
+            textDecoration: 'none', position: 'relative',
+          }}
+        >
+          <div style={{
+            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+            padding: '28px 16px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            minHeight: 120,
+            gap: 10,
+          }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: '#ff0000',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(255,0,0,0.4)',
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '0.88rem', fontWeight: 600, textAlign: 'center' }}>
+              {task.title}
+            </p>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem' }}>
+              YouTube에서 영상 보기 →
+            </p>
+          </div>
+        </a>
+
+        {/* 펼치기 버튼 */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            width: '100%', padding: '10px 16px',
+            background: 'none', border: 'none', borderTop: '1px solid var(--border-light)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: 'var(--font-body)', fontSize: '0.84rem', color: 'var(--text-muted)',
+          }}
+        >
+          <span style={{ display: 'inline-block', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>▼</span>
+          {expanded ? '접기' : '설명 보기'}
+        </button>
+
+        {/* 펼쳐지는 내용 */}
+        {expanded && (
+          <div style={{ padding: '14px 16px 16px', borderTop: '1px solid var(--border-light)' }}>
+            <p style={{ margin: '0 0 16px', fontSize: '0.93rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>
+              {task.description}
+            </p>
+            {!completed ? (
+              <button
+                className="btn btn-primary"
+                onClick={handleComplete}
+                style={{ width: '100%', justifyContent: 'center', fontSize: '0.95rem' }}
+              >
+                ✅ 오늘 완료했어요!
+              </button>
+            ) : (
+              <div style={{
+                padding: '12px', borderRadius: 10, textAlign: 'center',
+                background: 'rgba(58,122,58,0.1)', border: '1px solid rgba(58,122,58,0.25)',
+                color: '#3a7a3a', fontSize: '0.9rem', fontWeight: 600,
+              }}>
+                🎉 오늘의 부시 완료! 내일 또 만나요
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ---- Rules Section ----
@@ -441,7 +628,7 @@ export default function Home() {
   return (
     <div className="page">
       {/* Hero */}
-      <div style={{ textAlign: 'center', marginBottom: 28, paddingTop: 8 }}>
+      <div style={{ textAlign: 'center', marginBottom: 20, paddingTop: 8 }}>
         <div style={{ fontSize: '3rem', marginBottom: 8 }}>🌿</div>
         <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', letterSpacing: '0.12em', fontWeight: 700 }}>
           BUSHKIPIDIA
@@ -450,6 +637,9 @@ export default function Home() {
           자연 속에서 살아남는 기술의 수첩
         </p>
       </div>
+
+      {/* 1일 1부시 */}
+      <DailyBushSection />
 
       {/* Rules & Glossary — daily summary, above categories */}
       <p className="section-title">수칙 · 용어</p>

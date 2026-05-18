@@ -7,7 +7,6 @@ const NAV_ITEMS = [
   { to: '/skills', label: '스킬', icon: '🛠️', exact: false },
   { to: '/checklist', label: '준비물', icon: '📋', exact: false },
   { to: '/ai', label: 'AI', icon: '🤖', exact: false },
-  { to: '/daily', label: '사부작', icon: '🪓', exact: false },
   { to: '/qna', label: 'Q&A', icon: '💬', exact: false },
   { to: '/emergency', label: '긴급', icon: '🆘', exact: false },
   { to: '/fieldguide', label: '도감', icon: '🔬', exact: false },
