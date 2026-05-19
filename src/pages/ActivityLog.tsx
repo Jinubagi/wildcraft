@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchActivityLogs, fetchQuestions, fetchAnswers, type ActivityLog, type QnaQuestion } from '../lib/firebase';
+import { fetchActivityLogs, fetchQuestions, fetchAnswers, type QnaQuestion } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 
 const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN as string | undefined;
