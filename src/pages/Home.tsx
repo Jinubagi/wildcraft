@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { askWildcraft } from '../lib/anthropic';
 import { logActivity } from '../lib/firebase';
 import { getNickname } from '../components/NicknameModal';
-import { getTodayTask, getHistory, markTodayComplete, isTodayCompleted, type DailyTask } from '../lib/dailyTasks';
+import { getTodayTask, getHistory, getTaskById, markTodayComplete, isTodayCompleted, type DailyTask, type TaskHistory } from '../lib/dailyTasks';
 
 const CATEGORIES = [
   { id: 'fire', emoji: '🔥', label: '불피우기', desc: '마찰발화, 부싯돌, 불 관리' },
@@ -181,8 +181,54 @@ function DailyDescription({ text }: { text: string }) {
 const IMPORTANCE_LABEL = ['', '보통', '권장', '필수'];
 const IMPORTANCE_COLOR = ['', '#688060', '#b45309', '#c4441a'];
 const CATEGORY_EMOJI: Record<string, string> = {
-  '스킬': '🪓', '요리': '🍳', '카빙': '🔪', '손질': '🐟', '매듭': '🪢', '응급': '🚨', '장비': '🎒',
+  '스킬': '🪓', '요리': '🍳', '카빙': '🔪', '손질': '🐟', '매듭': '🪢', '응급': '🚨', '장비': '🎒', '낚시': '🎣', '사진': '📸',
 };
+
+function HistoryItem({ h }: { h: TaskHistory }) {
+  const [open, setOpen] = useState(false);
+  const fullTask = getTaskById(h.taskId);
+  return (
+    <div style={{
+      borderRadius: 8, overflow: 'hidden',
+      border: '1px solid var(--border-light)',
+      background: 'white',
+    }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '9px 12px', cursor: 'pointer',
+        }}
+      >
+        <span style={{ fontSize: '0.85rem' }}>{CATEGORY_EMOJI[h.category] ?? '🌿'}</span>
+        <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--bark)', fontWeight: 500 }}>{h.title}</span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{h.date}</span>
+        <span style={{ fontSize: '0.75rem', color: '#3a7a3a' }}>✅</span>
+        {fullTask && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>}
+      </div>
+      {open && fullTask && (
+        <div style={{ borderTop: '1px solid var(--border-light)', padding: '10px 12px', background: '#fafaf8' }}>
+          <DailyDescription text={fullTask.description} />
+          <a
+            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(fullTask.youtubeQuery)}`}
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              marginTop: 12, padding: '7px 12px', borderRadius: 7,
+              background: '#ff0000', color: 'white',
+              fontSize: '0.82rem', fontWeight: 500, textDecoration: 'none',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+              <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.5v-7l6.5 3.5-6.5 3.5z"/>
+            </svg>
+            유튜브로 보기
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function DailyBushSection() {
   const [task] = useState<DailyTask>(getTodayTask);
@@ -229,14 +275,9 @@ function DailyBushSection() {
             최근 완료 기록
           </p>
           {history.length === 0 && <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>아직 기록 없음</p>}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {history.slice(0, 10).map((h) => (
-              <div key={h.date} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: '0.8rem' }}>{CATEGORY_EMOJI[h.category] ?? '🌿'}</span>
-                <span style={{ flex: 1, fontSize: '0.83rem', color: 'var(--bark)' }}>{h.title}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{h.date}</span>
-                <span style={{ fontSize: '0.75rem', color: '#3a7a3a' }}>✅</span>
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {history.slice(0, 15).map((h) => (
+              <HistoryItem key={h.date} h={h} />
             ))}
           </div>
         </div>
