@@ -94,6 +94,89 @@ function saveGlossary(g: Record<string, string>) {
   try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(g)); } catch { /* noop */ }
 }
 
+// ---- 1일 1부시 description 렌더러 ----
+function DailyDescription({ text }: { text: string }) {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // 빈 줄
+    if (!line.trim()) { i++; continue; }
+
+    // 【섹션명】 헤더
+    const sectionMatch = line.match(/^【(.+?)】\s*(.*)/);
+    if (sectionMatch) {
+      const [, label, rest] = sectionMatch;
+      elements.push(
+        <div key={i} style={{ marginTop: 14 }}>
+          <div style={{
+            display: 'inline-block', fontSize: '0.72rem', fontWeight: 700,
+            color: 'var(--moss)', background: 'rgba(74,124,62,0.1)',
+            border: '1px solid rgba(74,124,62,0.25)',
+            borderRadius: 6, padding: '2px 8px', marginBottom: 6,
+            letterSpacing: '0.03em', fontFamily: 'var(--font-ui)',
+          }}>{label}</div>
+          {rest && <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.65 }}>{rest}</p>}
+        </div>
+      );
+      i++; continue;
+    }
+
+    // 번호 리스트 블록 수집
+    if (/^\d+\.\s/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s/, ''));
+        i++;
+      }
+      elements.push(
+        <ol key={`ol-${i}`} style={{
+          margin: '8px 0 0', paddingLeft: '1.4em',
+          display: 'flex', flexDirection: 'column', gap: 5,
+        }}>
+          {items.map((item, idx) => (
+            <li key={idx} style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.6 }}>{item}</li>
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    // 불릿 리스트 블록 수집
+    if (/^-\s/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^-\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^-\s/, ''));
+        i++;
+      }
+      elements.push(
+        <ul key={`ul-${i}`} style={{
+          margin: '6px 0 0', paddingLeft: '1.2em',
+          display: 'flex', flexDirection: 'column', gap: 4,
+        }}>
+          {items.map((item, idx) => (
+            <li key={idx} style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.6 }}>{item}</li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    // 일반 텍스트
+    elements.push(
+      <p key={i} style={{ margin: '8px 0 0', fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.7 }}>
+        {line}
+      </p>
+    );
+    i++;
+  }
+
+  return <div style={{ paddingBottom: 4 }}>{elements}</div>;
+}
+
 // ---- 1일 1부시 Section ----
 const IMPORTANCE_LABEL = ['', '보통', '권장', '필수'];
 const IMPORTANCE_COLOR = ['', '#688060', '#b45309', '#c4441a'];
@@ -253,9 +336,9 @@ function DailyBushSection() {
         {/* 펼쳐지는 내용 */}
         {expanded && (
           <div style={{ padding: '14px 16px 16px', borderTop: '1px solid var(--border-light)' }}>
-            <p style={{ margin: '0 0 16px', fontSize: '0.93rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>
-              {task.description}
-            </p>
+            <div style={{ marginBottom: 16 }}>
+              <DailyDescription text={task.description} />
+            </div>
             {!completed ? (
               <button
                 className="btn btn-primary"
