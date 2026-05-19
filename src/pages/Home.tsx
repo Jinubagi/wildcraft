@@ -294,12 +294,17 @@ function RulesSection() {
     setRules(next);
     saveRules(next);
     setInput('');
+    const nickname = getNickname() || '익명';
+    logActivity(nickname, 'skill_edit', `[수칙 추가] ${trimmed}`);
   }
 
   function removeRule(idx: number) {
+    const removed = rules[idx];
     const next = rules.filter((_, i) => i !== idx);
     setRules(next);
     saveRules(next);
+    const nickname = getNickname() || '익명';
+    logActivity(nickname, 'skill_edit', `[수칙 삭제] ${removed}`);
   }
 
   return (
