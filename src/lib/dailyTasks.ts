@@ -2408,7 +2408,3 @@ export function isTodayCompleted(): boolean {
 export function getTaskById(id: string): DailyTask | null {
   return [...WEEKDAY_TASKS, ...WEEKEND_TASKS].find((t) => t.id === id) ?? null;
 }
-
-export function getTaskById(id: string): DailyTask | null {
-  return [...WEEKDAY_TASKS, ...WEEKEND_TASKS].find((t) => t.id === id) ?? null;
-}
