@@ -112,9 +112,6 @@ export default function ActivityLogPage() {
     return <PinGate onUnlock={() => setUnlocked(true)} />;
   }
 
-  // 닉네임 목록
-  const nicknames = ['전체', ...Array.from(new Set(logs.map((l) => l.nickname))).sort()];
-
   // 필터 적용
   const filtered = logs.filter((l) => {
     if (actionFilter !== '전체' && l.action !== actionFilter) return false;
